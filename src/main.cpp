@@ -4,7 +4,7 @@
 #include <Servo.h>
 
 #include "RF24.h"
-#include "printf.h"
+// #include "printf.h"
 
 short delayTime = 500;
 
