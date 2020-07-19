@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Arduino_APDS9960.h>  // camera
-#include <Arduino_LSM9DS1.h>   // IMU
+#include <Arduino_LSM9DS1.h>   // IMU 111
 #include <Servo.h>
 
 #include "RF24.h"
