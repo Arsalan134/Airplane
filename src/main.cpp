@@ -1,11 +1,9 @@
+#include "RF24.h"
 #include <Arduino.h>
 #include <Arduino_APDS9960.h> // camera
 #include <Arduino_LSM9DS1.h>  // IMU
+#include <SPI.h>
 #include <Servo.h>
-#include <Wire.h>
-
-#include "RF24.h"
-#include "printf.h"
 
 short delayTime = 100;
 
@@ -45,7 +43,8 @@ short degreeOfFreedom = 90;
 
 boolean timeout = false;
 
-const uint64_t addresses[2] = {0xC1, 0xC2};
+// const uint64_t addresses[2] = {0xC1, 0xC2};
+byte addresses[][6] = {"1Node", "2Node"};
 
 byte rollIndex = 0, pitchIndex = 1, yawIndex = 2, throttleIndex = 3;
 byte batteryIndex = 0;
@@ -55,18 +54,10 @@ byte recievedData[4];
 
 unsigned long lastRecievedTime = millis();
 unsigned long currentTime = millis();
+unsigned long timeoutMilliSeconds = 500;
 
 void setup() {
   Serial.begin(115200);
-
-  while (!Serial)
-    ;
-
-  delay(1000);
-
-  Serial.println("Started");
-
-  Serial.println("Done with setup!");
 
   // if (!IMU.begin()) {
   //   Serial.println("Failed to initialize IMU!");
@@ -82,35 +73,31 @@ void setup() {
   // Serial.println("X\tY\tZ");
 
   pinMode(lightPin, OUTPUT);
-  printf_begin();
+  // printf_begin();
 
-  delay(1000);
+  // delay(1000);
 
   // Attach servos
-  motor.attach(motorPin, minThrottle, maxThrottle);
+
+  radio.begin();
+  radio.setPALevel(RF24_PA_LOW);
+  radio.setAutoAck(false);
+  // radio.setDataRate(RF24_250KBPS);
+  // radio.setPayloadSize(sizeof(transmitData));
+  radio.openWritingPipe(addresses[0]);
+  radio.openReadingPipe(1, addresses[1]);
+  radio.startListening();
+  // radio.setChannel(112);
+  // radio.printDetails();
+
+  delay(500);
+
+  motor.attach(motorPin, minThrottle, maxThro ttle);
   roll.attach(rollServoPin);
   pitch.attach(pitchServoPin);
   yaw.attach(yawServoPin);
 
-  radio.begin();
-
-  delay(1000);
-
-  radio.setAutoAck(false);
-  radio.setPayloadSize(sizeof(transmitData));
-  radio.openWritingPipe(addresses[0]);
-  radio.openReadingPipe(1, addresses[1]);
-  radio.setChannel(112);
-  radio.printDetails();
-
-  delay(500);
-
-  radio.startListening();
-
   Serial.println("Done with setup!");
-
-  // Wait for initialization and calibration to finish
-  delay(500);
 }
 
 void printMotion() {
@@ -278,25 +265,25 @@ void loop() {
 
   // transmit(); maybe via bluetooth to an iPhone
 
-  delay(delayTime);
-
   currentTime = millis();
 
-  if (currentTime - lastRecievedTime > 500) {
-    unsigned long timeSinceLastMessage = currentTime - lastRecievedTime;
-    String stringTimeout = "Timeout: ";
-    String resultString = stringTimeout + timeSinceLastMessage;
-
-    Serial.println(resultString);
-    reset();
-    Serial.println();
-  }
-
   if (radio.available()) {
-    radio.read(&recievedData, sizeof(recievedData));
+    while (radio.available()) {
+      radio.read(&recievedData, sizeof(recievedData));
+    }
     printRecievedData();
     lastRecievedTime = millis();
   }
+
+  // if (currentTime - lastRecievedTime > timeoutMilliSeconds) {
+  //   unsigned long timeSinceLastMessage = currentTime - lastRecievedTime;
+  //   String stringTimeout = "Timeout: ";
+  //   String resultString = stringTimeout + timeSinceLastMessage;
+
+  //   Serial.println(resultString);
+  //   reset();
+  //   Serial.println();
+  // }
 
   makeStuffWithRecievedData();
 }
