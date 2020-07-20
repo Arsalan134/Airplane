@@ -1,15 +1,18 @@
 #include <Arduino.h>
-#include <Arduino_APDS9960.h>  // camera
-#include <Arduino_LSM9DS1.h>   // IMU
+#include <Arduino_APDS9960.h> // camera
+#include <Arduino_LSM9DS1.h>  // IMU
 #include <Servo.h>
 #include <Wire.h>
 
 #include "RF24.h"
 #include "printf.h"
 
-short delayTime = 500;
+short delayTime = 100;
 
-// PINS
+// PINS------------------------------------
+// ~ ~ ~ ~ ~         ~ ~
+// 2 3 4 5 6 7  8    9 10 11    12    13
+// - - ? - - ce csn  - -  mosi  miso  sck
 
 // ANALOG
 // short vibroPin = A0;
@@ -18,15 +21,13 @@ short photoresistorPin = A1;
 // DIGITAL
 short lightPin = 2;
 
-// ~ ~ ~ ~ ~         ~ ~
-// 2 3 4 5 6 7  8    9 10 11    12    13
-// - - ? - - ce csn  - -  mosi  miso  sck
-
 // PWM
 short yawServoPin = 3;
 short pitchServoPin = 5;
 short motorPin = 6;
 short rollServoPin = 9;
+
+//-----------------------------------------
 
 RF24 radio(7, 8);
 
@@ -35,7 +36,7 @@ Servo pitch;
 Servo yaw;
 Servo motor;
 
-int throttleValue = 0;  // to a motor
+int throttleValue = 0; // to a motor
 
 short minThrottle = 1000;
 short maxThrottle = 2000;
@@ -65,22 +66,20 @@ void setup() {
 
   Serial.println("Started");
 
-  Serial.begin(115200);
-
   Serial.println("Done with setup!");
 
-  if (!IMU.begin()) {
-    Serial.println("Failed to initialize IMU!");
-    while (1)
-      ;
-  }
+  // if (!IMU.begin()) {
+  //   Serial.println("Failed to initialize IMU!");
+  //   while (1)
+  //     ;
+  // }
 
-  Serial.print("Accelerometer sample rate = ");
-  Serial.print(IMU.accelerationSampleRate());
-  Serial.println(" Hz");
-  Serial.println();
-  Serial.println("Acceleration in G's");
-  Serial.println("X\tY\tZ");
+  // Serial.print("Accelerometer sample rate = ");
+  // Serial.print(IMU.accelerationSampleRate());
+  // Serial.println(" Hz");
+  // Serial.println();
+  // Serial.println("Acceleration in G's");
+  // Serial.println("X\tY\tZ");
 
   pinMode(lightPin, OUTPUT);
   printf_begin();
@@ -206,22 +205,6 @@ void printCamera() {
   delay(1000);
 }
 
-void printPressure() {
-  // float pressure, temperature;
-  // PressTemp->GetPressure(&pressure);
-  // PressTemp->GetTemperature(&temperature);
-
-  // SerialPort.print("Pres[hPa]: ");
-  // SerialPort.print(pressure, 2);
-  // SerialPort.print(" | Temp[C]: ");
-  // SerialPort.println(temperature, 2);
-
-  // Serial.print("Pressuire[C]: ");
-  // Serial.println(barometricSensor.readPressureHPA());
-
-  delay(100);
-}
-
 void printTransmitData() {
   Serial.print("Sent: \t\t");
   for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
@@ -286,38 +269,34 @@ void ACS() {
   // offset of center of mass.
 }
 
-void listen() {
-  radio.startListening();
-  if (radio.available()) radio.read(&recievedData, sizeof(recievedData));
-  radio.stopListening();
-}
-
 void loop() {
   // printMotion();  // working
   // printCamera();  // working
   // printPressure();
 
-  readSensors();
+  // readSensors();
 
   // transmit(); maybe via bluetooth to an iPhone
 
   delay(delayTime);
 
-  listen();
-
   currentTime = millis();
 
   if (currentTime - lastRecievedTime > 500) {
-    Serial.println("TIMEOUT");
+    unsigned long timeSinceLastMessage = currentTime - lastRecievedTime;
+    String stringTimeout = "Timeout: ";
+    String resultString = stringTimeout + timeSinceLastMessage;
+
+    Serial.println(resultString);
     reset();
     Serial.println();
   }
 
   if (radio.available()) {
     radio.read(&recievedData, sizeof(recievedData));
+    printRecievedData();
     lastRecievedTime = millis();
   }
 
-  printRecievedData();
   makeStuffWithRecievedData();
 }
