@@ -1,7 +1,7 @@
-#include <Adafruit_BMP280.h>  // pressure and temperature
+#include <Adafruit_BMP280.h> // pressure and temperature
 #include <Arduino.h>
-#include <Arduino_APDS9960.h>  // camera
-#include <Arduino_LSM9DS1.h>   // IMU
+#include <Arduino_APDS9960.h> // camera
+#include <Arduino_LSM9DS1.h>  // IMU
 #include <SPI.h>
 #include <Servo.h>
 
@@ -39,7 +39,7 @@ Servo motor;
 
 Adafruit_BMP280 bmp;
 
-int throttleValue = 0;  // to a motor
+int throttleValue = 0; // to a motor
 
 short minThrottle = 1000;
 short maxThrottle = 2000;
@@ -85,7 +85,8 @@ void setup() {
 
   if (!bmp.begin(0x76)) {
     Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
-    while (1) delay(100);
+    while (1)
+      delay(100);
   }
 
   /* Default settings from datasheet. */
