@@ -236,22 +236,11 @@ void makeStuffWithRecievedData() {
   motor.write(throttleValue);
 }
 
-void reset() {
-  recievedData[rollIndex] = 127;
-  recievedData[pitchIndex] = 127;
-  recievedData[yawIndex] = 127;
-  recievedData[throttleIndex] = 0;
-}
-
-// Active Correction System
-void ACS() {
-  // read accelerometer data
-  // find difference
-  // adjust until the plane is in desired position
-
-  // if no command was sent, try to correct itself. For example strong wind or
-  // offset of center of mass.
-}
+// void reset() {
+//   recievedData[rollIndex] = 127;
+//   recievedData[pitchIndex] = 127;
+//   recievedData[yawIndex] = 127;
+// }
 
 void loop() {
   // printMotion();  // working
@@ -270,8 +259,12 @@ void loop() {
 
   currentTime = millis();
 
+  // Activate ACS when signal is lost
   if (currentTime - lastRecievedTime > timeoutMilliSeconds) {
-    reset();
+    recievedData[throttleIndex] = 0;
+
+    // ACS();
+    // Read data from 33 Sense
   }
 
   makeStuffWithRecievedData();
