@@ -1,3 +1,4 @@
+#include <Adafruit_BMP280.h>  // pressure and temperature
 #include <Arduino.h>
 #include <Arduino_APDS9960.h>  // camera
 #include <Arduino_LSM9DS1.h>   // IMU
@@ -36,6 +37,8 @@ Servo pitch;
 Servo yaw;
 Servo motor;
 
+Adafruit_BMP280 bmp;
+
 int throttleValue = 0;  // to a motor
 
 short minThrottle = 1000;
@@ -61,23 +64,8 @@ unsigned long timeoutMilliSeconds = 500;
 void setup() {
   Serial.begin(115200);
 
-  // if (!IMU.begin()) {
-  //   Serial.println("Failed to initialize IMU!");
-  //   while (1)
-  //     ;
-  // }
-
-  // Serial.print("Accelerometer sample rate = ");
-  // Serial.print(IMU.accelerationSampleRate());
-  // Serial.println(" Hz");
-  // Serial.println();
-  // Serial.println("Acceleration in G's");
-  // Serial.println("X\tY\tZ");
-
   pinMode(lightPin, OUTPUT);
   printf_begin();
-
-  // delay(1000);
 
   radio.begin();
   radio.setAutoAck(false);
@@ -94,6 +82,18 @@ void setup() {
   roll.attach(rollServoPin);
   pitch.attach(pitchServoPin);
   yaw.attach(yawServoPin);
+
+  if (!bmp.begin(0x76)) {
+    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+    while (1) delay(100);
+  }
+
+  /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 
   Serial.println("Done with setup!");
 }
@@ -242,10 +242,26 @@ void makeStuffWithRecievedData() {
 //   recievedData[yawIndex] = 127;
 // }
 
+void printPressureAndTemp() {
+  Serial.print(F("Temperature = "));
+  Serial.print(bmp.readTemperature());
+  Serial.println("C");
+
+  Serial.print(F("Pressure = "));
+  Serial.print(bmp.readPressure());
+  Serial.println(" Pa");
+
+  Serial.print(F("Approx altitude = "));
+  Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast! */
+  Serial.println(" m");
+
+  Serial.println();
+}
+
 void loop() {
   // printMotion();  // working
   // printCamera();  // working
-  // printPressure();
+  // printPressureAndTemp();
   // readSensors();
   // transmit(); maybe via bluetooth to an iPhone
 
