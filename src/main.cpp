@@ -1,9 +1,11 @@
-#include "RF24.h"
 #include <Arduino.h>
-#include <Arduino_APDS9960.h> // camera
-#include <Arduino_LSM9DS1.h>  // IMU
+#include <Arduino_APDS9960.h>  // camera
+#include <Arduino_LSM9DS1.h>   // IMU
 #include <SPI.h>
 #include <Servo.h>
+
+#include "RF24.h"
+#include "printf.h"
 
 short delayTime = 100;
 
@@ -34,7 +36,7 @@ Servo pitch;
 Servo yaw;
 Servo motor;
 
-int throttleValue = 0; // to a motor
+int throttleValue = 0;  // to a motor
 
 short minThrottle = 1000;
 short maxThrottle = 2000;
@@ -73,26 +75,22 @@ void setup() {
   // Serial.println("X\tY\tZ");
 
   pinMode(lightPin, OUTPUT);
-  // printf_begin();
+  printf_begin();
 
   // delay(1000);
 
-  // Attach servos
-
   radio.begin();
-  radio.setPALevel(RF24_PA_LOW);
   radio.setAutoAck(false);
-  // radio.setDataRate(RF24_250KBPS);
-  // radio.setPayloadSize(sizeof(transmitData));
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setChannel(112);
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
   radio.startListening();
-  // radio.setChannel(112);
-  // radio.printDetails();
 
-  delay(500);
+  radio.printDetails();
 
-  motor.attach(motorPin, minThrottle, maxThro ttle);
+  // Attach servos
+  motor.attach(motorPin, minThrottle, maxThrottle);
   roll.attach(rollServoPin);
   pitch.attach(pitchServoPin);
   yaw.attach(yawServoPin);
@@ -239,7 +237,6 @@ void makeStuffWithRecievedData() {
 }
 
 void reset() {
-  Serial.println("Resetting...");
   recievedData[rollIndex] = 127;
   recievedData[pitchIndex] = 127;
   recievedData[yawIndex] = 127;
@@ -260,12 +257,8 @@ void loop() {
   // printMotion();  // working
   // printCamera();  // working
   // printPressure();
-
   // readSensors();
-
   // transmit(); maybe via bluetooth to an iPhone
-
-  currentTime = millis();
 
   if (radio.available()) {
     while (radio.available()) {
@@ -275,15 +268,11 @@ void loop() {
     lastRecievedTime = millis();
   }
 
-  // if (currentTime - lastRecievedTime > timeoutMilliSeconds) {
-  //   unsigned long timeSinceLastMessage = currentTime - lastRecievedTime;
-  //   String stringTimeout = "Timeout: ";
-  //   String resultString = stringTimeout + timeSinceLastMessage;
+  currentTime = millis();
 
-  //   Serial.println(resultString);
-  //   reset();
-  //   Serial.println();
-  // }
+  if (currentTime - lastRecievedTime > timeoutMilliSeconds) {
+    reset();
+  }
 
   makeStuffWithRecievedData();
 }
