@@ -1,7 +1,7 @@
-#include <Adafruit_BMP280.h> // pressure and temperature
+#include <Adafruit_BMP280.h>  // pressure and temperature
 #include <Arduino.h>
-#include <Arduino_APDS9960.h> // camera
-#include <Arduino_LSM9DS1.h>  // IMU
+#include <Arduino_APDS9960.h>  // camera
+#include <Arduino_LSM9DS1.h>   // IMU
 #include <SPI.h>
 #include <Servo.h>
 
@@ -13,7 +13,7 @@ short delayTime = 100;
 // PINS------------------------------------
 // ~ ~ ~ ~ ~         ~ ~
 // 2 3 4 5 6 7  8    9 10 11    12    13
-// - - ? - - ce csn  - -  mosi  miso  sck
+// - - - - - ce csn  - -  mosi  miso  sck
 
 // ANALOG
 // short vibroPin = A0;
@@ -25,7 +25,7 @@ short lightPin = 2;
 // PWM
 short yawServoPin = 3;
 short pitchServoPin = 5;
-short motorPin = 6;
+short motorPin = 4;
 short rollServoPin = 9;
 
 //-----------------------------------------
@@ -39,7 +39,7 @@ Servo motor;
 
 Adafruit_BMP280 bmp;
 
-int throttleValue = 0; // to a motor
+int throttleValue = 0;  // to a motor
 
 short minThrottle = 1000;
 short maxThrottle = 2000;
@@ -83,18 +83,16 @@ void setup() {
   pitch.attach(pitchServoPin);
   yaw.attach(yawServoPin);
 
-  if (!bmp.begin(0x76)) {
-    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
-    while (1)
-      delay(100);
-  }
+  // if (!bmp.begin(0x76)) {
+
+  // }
 
   /* Default settings from datasheet. */
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+  // bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+  //                 Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+  //                 Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling
+  //                 */ Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+  //                 Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 
   Serial.println("Done with setup!");
 }
