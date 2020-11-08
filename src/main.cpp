@@ -265,9 +265,9 @@ void loop() {
   // transmit(); maybe via bluetooth to an iPhone
 
   if (radio.available()) {
-    while (radio.available()) {
-      radio.read(&recievedData, sizeof(recievedData));
-    }
+    //   while (radio.available()) {
+    radio.read(&recievedData, sizeof(recievedData));
+    // }
     printRecievedData();
     lastRecievedTime = millis();
   }
