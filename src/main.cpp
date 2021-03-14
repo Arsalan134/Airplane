@@ -1,7 +1,7 @@
-#include <Adafruit_BMP280.h>  // pressure and temperature
+#include <Adafruit_BMP280.h> // pressure and temperature
 #include <Arduino.h>
-#include <Arduino_APDS9960.h>  // camera
-#include <Arduino_LSM9DS1.h>   // IMU
+// #include <Arduino_APDS9960.h> // camera
+// #include <Arduino_LSM9DS1.h>  // IMU
 #include <SPI.h>
 #include <Servo.h>
 
@@ -24,9 +24,10 @@ short lightPin = 2;
 
 // PWM
 short yawServoPin = 3;
+short rollServoPin = 4;
 short pitchServoPin = 5;
-short motorPin = 4;
-short rollServoPin = 9;
+
+short motorPin = 9;
 
 //-----------------------------------------
 
@@ -39,7 +40,6 @@ Servo motor;
 
 Adafruit_BMP280 bmp;
 
-int throttleValue = 0;  // to a motor
 
 short minThrottle = 1000;
 short maxThrottle = 2000;
@@ -49,7 +49,7 @@ short degreeOfFreedom = 90;
 boolean timeout = false;
 
 // const uint64_t addresses[2] = {0xC1, 0xC2};
-byte addresses[][6] = {"1Node", "2Node"};
+byte addresses[][6] = { "1Node", "2Node" };
 
 byte rollIndex = 0, pitchIndex = 1, yawIndex = 2, throttleIndex = 3;
 byte batteryIndex = 0;
@@ -97,102 +97,109 @@ void setup() {
   Serial.println("Done with setup!");
 }
 
-void printMotion() {
+// void printMotion() {
   // Accelerometer range is set at [-4,+4]g -/+0.122 mg
   // Gyroscope range is set at [-2000, +2000] dps +/-70 mdps
   // Magnetometer range is set at [-400, +400] uT +/-0.014 uT
   // Accelerometer Output data rate is fixed at 104 Hz
   // Gyroscope Output data rate is fixed at 104 Hz
   // Magnetometer Output data rate is fixed at 20 Hz
-  float x, y, z, x2, y2, z2, x3, y3, z3;
+  // float x, y, z, x2, y2, z2, x3, y3, z3;
 
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
+  // if (IMU.accelerationAvailable())
+  // {
+  //   IMU.readAcceleration(x, y, z);
 
-    Serial.print(x);
-    Serial.print('\t');
-    Serial.print(y);
-    Serial.print('\t');
-    Serial.print(z);
-    Serial.print('\t');
-    Serial.print('\t');
-  }
+  //   Serial.print(x);
+  //   Serial.print('\t');
+  //   Serial.print(y);
+  //   Serial.print('\t');
+  //   Serial.print(z);
+  //   Serial.print('\t');
+  //   Serial.print('\t');
+  // }
 
-  if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(x2, y2, z2);
+  // if (IMU.gyroscopeAvailable())
+  // {
+  //   IMU.readGyroscope(x2, y2, z2);
 
-    Serial.print(x2);
-    Serial.print('\t');
-    Serial.print(y2);
-    Serial.print('\t');
-    Serial.print(z2);
-    Serial.print('\t');
-    Serial.print('\t');
-  }
+  //   Serial.print(x2);
+  //   Serial.print('\t');
+  //   Serial.print(y2);
+  //   Serial.print('\t');
+  //   Serial.print(z2);
+  //   Serial.print('\t');
+  //   Serial.print('\t');
+  // }
 
-  if (IMU.magneticFieldAvailable()) {
-    IMU.readMagneticField(x3, y3, z3);
+  // if (IMU.magneticFieldAvailable())
+  // {
+  //   IMU.readMagneticField(x3, y3, z3);
 
-    Serial.print(x3);
-    Serial.print('\t');
-    Serial.print(y3);
-    Serial.print('\t');
-    Serial.println(z3);
-  }
-  delay(100);
-}
+  //   Serial.print(x3);
+  //   Serial.print('\t');
+  //   Serial.print(y3);
+  //   Serial.print('\t');
+  //   Serial.println(z3);
+  // }
+  // delay(100);
+// }
 
-void printCamera() {
-  if (!APDS.begin()) {
-    Serial.println("Error initializing APDS9960 sensor.");
-  }
+// void printCamera()
+// {
+//   if (!APDS.begin())
+//   {
+//     Serial.println("Error initializing APDS9960 sensor.");
+//   }
 
-  while (!APDS.colorAvailable()) {
-    delay(5);
-  }
-  int r, g, b;
+//   while (!APDS.colorAvailable())
+//   {
+//     delay(5);
+//   }
+//   int r, g, b;
 
-  APDS.readColor(r, g, b);
+//   APDS.readColor(r, g, b);
 
-  Serial.print("r = ");
-  Serial.println(r);
-  Serial.print("g = ");
-  Serial.println(g);
-  Serial.print("b = ");
-  Serial.println(b);
-  Serial.println();
+//   Serial.print("r = ");
+//   Serial.println(r);
+//   Serial.print("g = ");
+//   Serial.println(g);
+//   Serial.print("b = ");
+//   Serial.println(b);
+//   Serial.println();
 
-  delay(1000);
+//   delay(1000);
 
-  // 10 to 20 cm
-  while (!APDS.proximityAvailable()) {
-    delay(5);
-  }
+//   // 10 to 20 cm
+//   while (!APDS.proximityAvailable())
+//   {
+//     delay(5);
+//   }
 
-  int p = APDS.readProximity();
+//   int p = APDS.readProximity();
 
-  Serial.print("p = ");
-  Serial.println(p);
+//   Serial.print("p = ");
+//   Serial.println(p);
 
-  delay(1000);
+//   delay(1000);
 
-  while (!APDS.gestureAvailable()) {
-    delay(5);
-  }
+//   while (!APDS.gestureAvailable())
+//   {
+//     delay(5);
+//   }
 
-  int gesture = APDS.readGesture();
+//   int gesture = APDS.readGesture();
 
-  Serial.print("gesture = ");
-  Serial.println(gesture);
-  APDS.end();
+//   Serial.print("gesture = ");
+//   Serial.println(gesture);
+//   APDS.end();
 
-  delay(1000);
-}
+//   delay(1000);
+// }
 
 void printTransmitData() {
   Serial.print("Sent: \t\t");
-  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
-       i++) {
+  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
     Serial.print(transmitData[i]);
     Serial.print(" ");
   }
@@ -200,13 +207,25 @@ void printTransmitData() {
 }
 
 void printRecievedData() {
-  Serial.print("Recieved: \t");
-  for (unsigned long i = 0; i < sizeof(recievedData) / sizeof(recievedData[0]);
-       i++) {
-    Serial.print(recievedData[i]);
-    Serial.print(" ");
-  }
+  // Serial.print("Recieved: \t");
+  // for (unsigned long i = 0; i < sizeof(recievedData) / sizeof(recievedData[0]); i++) {
+  Serial.print("Throttle ");
+  Serial.println(recievedData[throttleIndex]);
+
+  Serial.print("Yaw ");
+  Serial.println(recievedData[yawIndex]);
+
+  Serial.print("Pitch ");
+  Serial.println(recievedData[pitchIndex]);
+
+  Serial.print("Roll ");
+  Serial.println(recievedData[rollIndex]);
+
   Serial.println();
+  // Serial.print(recievedData[i]);
+  // Serial.print(" ");
+// }
+// Serial.println();
 }
 
 void readSensors() { transmitData[batteryIndex] = 0; }
@@ -219,10 +238,8 @@ void transmit() {
 }
 
 void makeStuffWithRecievedData() {
-  byte rollValue = map(recievedData[rollIndex], 0, 255,
-                       90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte pitchValue = map(recievedData[pitchIndex], 0, 255,
-                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
+  byte rollValue = map(recievedData[rollIndex], 0, 255, 90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
+  byte pitchValue = map(recievedData[pitchIndex], 0, 255, 90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte yawValue = map(recievedData[yawIndex], 0, 255, 180, 0);
 
   yawValue = constrain(yawValue, 55, 160);
@@ -231,8 +248,7 @@ void makeStuffWithRecievedData() {
   pitch.write(pitchValue);
   yaw.write(yawValue);
 
-  throttleValue = recievedData[throttleIndex];
-  motor.write(throttleValue);
+  motor.write(recievedData[throttleIndex]);
 }
 
 // void reset() {
@@ -265,22 +281,29 @@ void loop() {
   // transmit(); maybe via bluetooth to an iPhone
 
   if (radio.available()) {
+
     //   while (radio.available()) {
     radio.read(&recievedData, sizeof(recievedData));
     // }
-    printRecievedData();
     lastRecievedTime = millis();
+
+    printRecievedData();
   }
 
   currentTime = millis();
+  unsigned long elapsedTime = currentTime - lastRecievedTime;
 
   // Activate ACS when signal is lost
-  if (currentTime - lastRecievedTime > timeoutMilliSeconds) {
+  if (elapsedTime >= timeoutMilliSeconds) {
     recievedData[throttleIndex] = 0;
-
     // ACS();
     // Read data from 33 Sense
+    // Serial.println("Signal Loss");
   }
+  // else {
+  //   Serial.print("Elapsed: ");
+  //   Serial.println(elapsedTime);
+  // }
 
   makeStuffWithRecievedData();
 }
