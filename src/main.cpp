@@ -8,26 +8,9 @@
 #include "RF24.h"
 #include "printf.h"
 
+#include <definitions.h>
+
 short delayTime = 100;
-
-// PINS------------------------------------
-// ~ ~ ~ ~ ~         ~ ~
-// 2 3 4 5 6 7  8    9 10 11    12    13
-// - - - - - ce csn  - -  mosi  miso  sck
-
-// ANALOG
-// short vibroPin = A0;
-short photoresistorPin = A1;
-
-// DIGITAL
-short lightPin = 2;
-
-// PWM
-short yawServoPin = 3;
-short rollServoPin = 4;
-short pitchServoPin = 5;
-
-short motorPin = 9;
 
 //-----------------------------------------
 
@@ -40,19 +23,9 @@ Servo motor;
 
 Adafruit_BMP280 bmp;
 
-
-short minThrottle = 1000;
-short maxThrottle = 2000;
-
-short degreeOfFreedom = 90;
-
 boolean timeout = false;
 
-// const uint64_t addresses[2] = {0xC1, 0xC2};
 byte addresses[][6] = { "1Node", "2Node" };
-
-byte rollIndex = 0, pitchIndex = 1, yawIndex = 2, throttleIndex = 3;
-byte batteryIndex = 0;
 
 byte transmitData[1];
 byte recievedData[4];
