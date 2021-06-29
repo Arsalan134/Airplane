@@ -16,7 +16,8 @@ short delayTime = 100;
 
 RF24 radio(7, 8);
 
-Servo roll;
+Servo rollLeft;
+Servo rollRight;
 Servo pitch;
 Servo yaw;
 Servo motor;
@@ -25,7 +26,7 @@ Adafruit_BMP280 bmp;
 
 boolean timeout = false;
 
-byte addresses[][6] = { "1Node", "2Node" };
+byte addresses[][6] = {"1Node", "2Node"};
 
 byte transmitData[1];
 byte recievedData[4];
@@ -33,6 +34,7 @@ byte recievedData[4];
 unsigned long lastRecievedTime = millis();
 unsigned long currentTime = millis();
 unsigned long timeoutMilliSeconds = 500;
+unsigned long elapsedTime = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -52,7 +54,8 @@ void setup() {
 
   // Attach servos
   motor.attach(motorPin, minThrottle, maxThrottle);
-  roll.attach(rollServoPin);
+  rollLeft.attach(rollServoLeftPin);
+  rollRight.attach(rollServoRightPin);
   pitch.attach(pitchServoPin);
   yaw.attach(yawServoPin);
 
@@ -71,51 +74,51 @@ void setup() {
 }
 
 // void printMotion() {
-  // Accelerometer range is set at [-4,+4]g -/+0.122 mg
-  // Gyroscope range is set at [-2000, +2000] dps +/-70 mdps
-  // Magnetometer range is set at [-400, +400] uT +/-0.014 uT
-  // Accelerometer Output data rate is fixed at 104 Hz
-  // Gyroscope Output data rate is fixed at 104 Hz
-  // Magnetometer Output data rate is fixed at 20 Hz
-  // float x, y, z, x2, y2, z2, x3, y3, z3;
+// Accelerometer range is set at [-4,+4]g -/+0.122 mg
+// Gyroscope range is set at [-2000, +2000] dps +/-70 mdps
+// Magnetometer range is set at [-400, +400] uT +/-0.014 uT
+// Accelerometer Output data rate is fixed at 104 Hz
+// Gyroscope Output data rate is fixed at 104 Hz
+// Magnetometer Output data rate is fixed at 20 Hz
+// float x, y, z, x2, y2, z2, x3, y3, z3;
 
-  // if (IMU.accelerationAvailable())
-  // {
-  //   IMU.readAcceleration(x, y, z);
+// if (IMU.accelerationAvailable())
+// {
+//   IMU.readAcceleration(x, y, z);
 
-  //   Serial.print(x);
-  //   Serial.print('\t');
-  //   Serial.print(y);
-  //   Serial.print('\t');
-  //   Serial.print(z);
-  //   Serial.print('\t');
-  //   Serial.print('\t');
-  // }
+//   Serial.print(x);
+//   Serial.print('\t');
+//   Serial.print(y);
+//   Serial.print('\t');
+//   Serial.print(z);
+//   Serial.print('\t');
+//   Serial.print('\t');
+// }
 
-  // if (IMU.gyroscopeAvailable())
-  // {
-  //   IMU.readGyroscope(x2, y2, z2);
+// if (IMU.gyroscopeAvailable())
+// {
+//   IMU.readGyroscope(x2, y2, z2);
 
-  //   Serial.print(x2);
-  //   Serial.print('\t');
-  //   Serial.print(y2);
-  //   Serial.print('\t');
-  //   Serial.print(z2);
-  //   Serial.print('\t');
-  //   Serial.print('\t');
-  // }
+//   Serial.print(x2);
+//   Serial.print('\t');
+//   Serial.print(y2);
+//   Serial.print('\t');
+//   Serial.print(z2);
+//   Serial.print('\t');
+//   Serial.print('\t');
+// }
 
-  // if (IMU.magneticFieldAvailable())
-  // {
-  //   IMU.readMagneticField(x3, y3, z3);
+// if (IMU.magneticFieldAvailable())
+// {
+//   IMU.readMagneticField(x3, y3, z3);
 
-  //   Serial.print(x3);
-  //   Serial.print('\t');
-  //   Serial.print(y3);
-  //   Serial.print('\t');
-  //   Serial.println(z3);
-  // }
-  // delay(100);
+//   Serial.print(x3);
+//   Serial.print('\t');
+//   Serial.print(y3);
+//   Serial.print('\t');
+//   Serial.println(z3);
+// }
+// delay(100);
 // }
 
 // void printCamera()
@@ -172,7 +175,8 @@ void setup() {
 
 void printTransmitData() {
   Serial.print("Sent: \t\t");
-  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
+  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
+       i++) {
     Serial.print(transmitData[i]);
     Serial.print(" ");
   }
@@ -181,7 +185,8 @@ void printTransmitData() {
 
 void printRecievedData() {
   // Serial.print("Recieved: \t");
-  // for (unsigned long i = 0; i < sizeof(recievedData) / sizeof(recievedData[0]); i++) {
+  // for (unsigned long i = 0; i < sizeof(recievedData) /
+  // sizeof(recievedData[0]); i++) {
   Serial.print("Throttle ");
   Serial.println(recievedData[throttleIndex]);
 
@@ -197,8 +202,8 @@ void printRecievedData() {
   Serial.println();
   // Serial.print(recievedData[i]);
   // Serial.print(" ");
-// }
-// Serial.println();
+  // }
+  // Serial.println();
 }
 
 void readSensors() { transmitData[batteryIndex] = 0; }
@@ -211,13 +216,17 @@ void transmit() {
 }
 
 void makeStuffWithRecievedData() {
-  byte rollValue = map(recievedData[rollIndex], 0, 255, 90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte pitchValue = map(recievedData[pitchIndex], 0, 255, 90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte yawValue = map(recievedData[yawIndex], 0, 255, 180, 0);
+  byte rollValue = map(recievedData[rollIndex], 0, 255,
+                       90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
+  byte pitchValue = map(recievedData[pitchIndex], 0, 255,
+                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
+  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
 
   yawValue = constrain(yawValue, 55, 160);
 
-  roll.write(rollValue);
+  rollLeft.write(180 - rollValue);
+  rollRight.write(rollValue);
+
   pitch.write(pitchValue);
   yaw.write(yawValue);
 
@@ -264,7 +273,7 @@ void loop() {
   }
 
   currentTime = millis();
-  unsigned long elapsedTime = currentTime - lastRecievedTime;
+  elapsedTime = currentTime - lastRecievedTime;
 
   // Activate ACS when signal is lost
   if (elapsedTime >= timeoutMilliSeconds) {
