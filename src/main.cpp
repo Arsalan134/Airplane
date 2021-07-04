@@ -101,9 +101,9 @@ void makeStuffWithRecievedData() {
                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte pitchValue = map(recievedData[pitchIndex], 0, 255,
                         90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
+  // byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
 
-  yawValue = constrain(yawValue, 55, 160);
+  // yawValue = constrain(yawValue, 55, 160);
 
   rollLeft.write(rollValue);
   rollRight.write(rollValue);
@@ -157,7 +157,7 @@ void loop() {
     // }
     lastRecievedTime = millis();
 
-    printRecievedData();
+    // printRecievedData();
   }
 
   currentTime = millis();
