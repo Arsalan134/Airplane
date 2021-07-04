@@ -26,8 +26,11 @@
 
 #define degreeOfFreedom 90
 
+// Indices in recieve payload
 #define rollIndex 0
 #define pitchIndex 1
 #define yawIndex 2
 #define throttleIndex 3
+
+// Indices in transmit payload
 #define batteryIndex 0
