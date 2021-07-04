@@ -11,11 +11,14 @@
 #define lightPin 2
 
 // PWM
-#define yawServoPin 3
-#define rollServoLeftPin 4  // look from Top
-#define rollServoRightPin 6 // look from Top
 
-#define pitchServoPin 5 // combine 2 servos to one signal cable
+// look from Top
+#define pitchServoLeftPin 3
+#define pitchServoRightPin 5
+
+#define rollServoLeftPin 4
+#define rollServoRightPin 6
+
 #define motorPin 9
 
 #define minThrottle 1000

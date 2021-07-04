@@ -18,8 +18,9 @@ RF24 radio(7, 8);
 
 Servo rollLeft;
 Servo rollRight;
-Servo pitch;
-Servo yaw;
+Servo pitchRight;
+Servo pitchLeft;
+// Servo yaw;
 Servo motor;
 
 Adafruit_BMP280 bmp;
@@ -39,7 +40,7 @@ unsigned long elapsedTime = 0;
 void setup() {
   Serial.begin(115200);
 
-  pinMode(lightPin, OUTPUT);
+  // pinMode(lightPin, OUTPUT);
   printf_begin();
 
   radio.begin();
@@ -56,8 +57,8 @@ void setup() {
   motor.attach(motorPin, minThrottle, maxThrottle);
   rollLeft.attach(rollServoLeftPin);
   rollRight.attach(rollServoRightPin);
-  pitch.attach(pitchServoPin);
-  yaw.attach(yawServoPin);
+  pitchRight.attach(pitchServoRightPin);
+  pitchLeft.attach(pitchServoLeftPin);
 
   // if (!bmp.begin(0x76)) {
 
@@ -224,20 +225,22 @@ void makeStuffWithRecievedData() {
 
   yawValue = constrain(yawValue, 55, 160);
 
-  rollLeft.write(180 - rollValue);
+  rollLeft.write(rollValue);
   rollRight.write(rollValue);
 
-  pitch.write(pitchValue);
-  yaw.write(yawValue);
+  pitchLeft.write(pitchValue);
+  pitchRight.write(180 - pitchValue);
+
+  // yaw.write(yawValue);
 
   motor.write(recievedData[throttleIndex]);
 }
 
-// void reset() {
-//   recievedData[rollIndex] = 127;
-//   recievedData[pitchIndex] = 127;
-//   recievedData[yawIndex] = 127;
-// }
+void reset() {
+  recievedData[rollIndex] = 127;
+  recievedData[pitchIndex] = 127;
+  recievedData[yawIndex] = 127;
+}
 
 void printPressureAndTemp() {
   Serial.print(F("Temperature = "));
@@ -253,6 +256,11 @@ void printPressureAndTemp() {
   Serial.println(" m");
 
   Serial.println();
+}
+
+void ACS() {
+  recievedData[throttleIndex] = 0;
+  reset();
 }
 
 void loop() {
@@ -277,8 +285,8 @@ void loop() {
 
   // Activate ACS when signal is lost
   if (elapsedTime >= timeoutMilliSeconds) {
-    recievedData[throttleIndex] = 0;
-    // ACS();
+
+    ACS();
     // Read data from 33 Sense
     // Serial.println("Signal Loss");
   }
