@@ -16,9 +16,8 @@ RF24 radio(7, 8);
 
 Servo rollLeft;
 Servo rollRight;
-Servo pitchRight;
-Servo pitchLeft;
-// Servo yaw;
+Servo pitch;
+Servo yaw;
 Servo motor;
 
 boolean timeout = false;
@@ -52,8 +51,8 @@ void setup() {
   motor.attach(motorPin, minThrottle, maxThrottle);
   rollLeft.attach(rollServoLeftPin);
   rollRight.attach(rollServoRightPin);
-  pitchRight.attach(pitchServoRightPin);
-  pitchLeft.attach(pitchServoLeftPin);
+  pitch.attach(pitchServoPin);
+  yaw.attach(yawServoPin);
 
   Serial.println("Done with setup!");
 }
@@ -101,18 +100,14 @@ void makeStuffWithRecievedData() {
                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte pitchValue = map(recievedData[pitchIndex], 0, 255,
                         90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  // byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
+  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
 
-  // yawValue = constrain(yawValue, 55, 160);
+  yawValue = constrain(yawValue, 55, 160);
 
   rollLeft.write(rollValue);
   rollRight.write(rollValue);
-
-  pitchLeft.write(pitchValue);
-  pitchRight.write(180 - pitchValue);
-
-  // yaw.write(yawValue);
-
+  pitch.write(pitchValue);
+  yaw.write(yawValue);
   motor.write(recievedData[throttleIndex]);
 }
 
@@ -138,9 +133,17 @@ void reset() {
 //   Serial.println();
 // }
 
+/// Active Control System
 void ACS() {
   recievedData[throttleIndex] = 0;
   reset();
+
+  // comment reset fundtion call
+
+  /*
+   * 1. Read Accelerometer data
+   * 2. Move Wings
+   */
 }
 
 void loop() {

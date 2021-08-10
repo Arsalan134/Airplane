@@ -1,23 +1,25 @@
 // PINS------------------------------------
-// ~ ~ ~ ~ ~         ~ ~
+//   ~   ~ ~         ~ ~  ~           ~
 // 2 3 4 5 6 7  8    9 10 11    12    13
-// - - - - - ce csn  - +  mosi  miso  sck
+// I - - - - ce csn  - -  mosi  miso  sck
 
 // ANALOG
 // short vibroPin = A0;
 // #define photoresistorPin A1 // no need because 33 sense has camera
 
 // DIGITAL
-#define lightPin 2
 
 // PWM
 
 // look from Top
-#define pitchServoLeftPin 3
-#define pitchServoRightPin 5
+// #define pitchServoLeftPin 3 SCL reserved
+
+#define pitchServoPin 5
 
 #define rollServoLeftPin 4
 #define rollServoRightPin 6
+
+#define yawServoPin 10
 
 #define motorPin 9
 

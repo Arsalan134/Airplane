@@ -4,6 +4,7 @@
 // #include <Adafruit_BMP280.h>
 
 // Adafruit_BMP280 bmp;
+
 // void printMotion() {
 // Accelerometer range is set at [-4,+4]g -/+0.122 mg
 // Gyroscope range is set at [-2000, +2000] dps +/-70 mdps
