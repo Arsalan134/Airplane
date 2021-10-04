@@ -3,8 +3,19 @@
 #include <SPI.h>
 #include <Servo.h>
 
+// #include "nRF24L01.h"
+// #include "RF24.h"
+// #include "printf.h"
+
+#include <avr/pgmspace.h>
+
+// #include <RF24Network.h>
+// #include <RF24.h>
+// #include "printf.h"
+
 #include "RF24.h"
 #include "printf.h"
+#include <printf.h>
 
 #include <definitions.h>
 
@@ -33,17 +44,26 @@ unsigned long timeoutMilliSeconds = 500;
 unsigned long elapsedTime = 0;
 
 void setup() {
-  Serial.begin(115200);
+
+  Serial.begin(57600);
+
+  delay(2000);
 
   printf_begin();
 
+  delay(1000);
+
   radio.begin();
+   
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
+  radio.setDataRate(RF24_250KBPS);
   radio.startListening();
+
+  delay(1000);
 
   radio.printDetails();
 

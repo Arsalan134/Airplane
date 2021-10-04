@@ -1,7 +1,28 @@
 // PINS------------------------------------
-//   ~   ~ ~         ~ ~  ~           ~
+//   ~   ~ ~         ~ ~  ~     ~     ~
 // 2 3 4 5 6 7  8    9 10 11    12    13
-// I - - - - ce csn  - -  mosi  miso  sck
+// I + - - - ce csn  - -  mosi  miso  +
+
+//  I for Interrupt
+
+/*
+
+D0
+D1      Interrupt
+D2
+D3  ~   SCL I2C
+D4      Left Roll
+D5  ~   Pitch
+D6  ~   Right Roll
+D7      CE
+D8      CSN
+D9  ~   Motor
+D10 ~   Yaw
+D11 ~   MOSI ? FREE
+D12 ~   MISO ? FREE
+D13 ~   === FREE ===
+
+*/
 
 // ANALOG
 // short vibroPin = A0;
@@ -12,7 +33,6 @@
 // PWM
 
 // look from Top
-// #define pitchServoLeftPin 3 SCL reserved
 
 #define pitchServoPin 5
 
