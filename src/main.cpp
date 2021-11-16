@@ -2,24 +2,13 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Servo.h>
-
-// #include "nRF24L01.h"
-// #include "RF24.h"
-// #include "printf.h"
-
 #include <avr/pgmspace.h>
-
-// #include <RF24Network.h>
-// #include <RF24.h>
-// #include "printf.h"
-
 #include "RF24.h"
 #include "printf.h"
 #include <printf.h>
-
 #include <definitions.h>
 
-short delayTime = 100;
+short delayTime = 20;
 
 //-----------------------------------------
 
@@ -109,13 +98,14 @@ void printRecievedData() {
 void readSensors() { transmitData[batteryIndex] = 0; }
 
 void transmit() {
-  Serial.println("Transmitting...");
+  // Serial.println("Transmitting...");
   radio.stopListening();
   radio.write(&transmitData, sizeof(transmitData));
   radio.startListening();
 }
 
 void makeStuffWithRecievedData() {
+
   byte rollValue = map(recievedData[rollIndex], 0, 255,
                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte pitchValue = map(recievedData[pitchIndex], 0, 255,
@@ -167,20 +157,18 @@ void ACS() {
 }
 
 void loop() {
+  
   // printMotion();  // working
   // printCamera();  // working
   // printPressureAndTemp();
-  // readSensors();
-  // transmit(); maybe via bluetooth to an iPhone
+  delay(delayTime);
+  
+  readSensors();
+  transmit();
 
   if (radio.available()) {
-
-    //   while (radio.available()) {
     radio.read(&recievedData, sizeof(recievedData));
-    // }
     lastRecievedTime = millis();
-
-    // printRecievedData();
   }
 
   currentTime = millis();
@@ -191,12 +179,12 @@ void loop() {
 
     ACS();
     // Read data from 33 Sense
-    // Serial.println("Signal Loss");
+    Serial.println("Signal Loss");
   }
-  // else {
-  //   Serial.print("Elapsed: ");
-  //   Serial.println(elapsedTime);
-  // }
+  else {
+    Serial.print("Elapsed: ");
+    Serial.println(elapsedTime);
+  }
 
   makeStuffWithRecievedData();
 }
