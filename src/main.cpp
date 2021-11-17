@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+
 #include <SPI.h>
 #include <Servo.h>
 #include <avr/pgmspace.h>
@@ -110,21 +111,23 @@ void makeStuffWithRecievedData() {
                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte pitchValue = map(recievedData[pitchIndex], 0, 255,
                         90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
+  // byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
 
-  yawValue = constrain(yawValue, 55, 160);
+  // yawValue = constrain(yawValue, 55, 160);
 
   rollLeft.write(rollValue);
   rollRight.write(rollValue);
-  pitch.write(pitchValue);
-  yaw.write(yawValue);
+
+  pitch.write(180 - pitchValue); // from top left
+  yaw.write(pitchValue);
+
   motor.write(recievedData[throttleIndex]);
 }
 
 void reset() {
-  recievedData[rollIndex] = 127;
-  recievedData[pitchIndex] = 127;
-  recievedData[yawIndex] = 127;
+  recievedData[rollIndex] = 90;
+  recievedData[pitchIndex] = 90;
+  recievedData[yawIndex] = 90;
 }
 
 // void printPressureAndTemp() {
@@ -176,14 +179,11 @@ void loop() {
 
   // Activate ACS when signal is lost
   if (elapsedTime >= timeoutMilliSeconds) {
-
     ACS();
-    // Read data from 33 Sense
-    Serial.println("Signal Loss");
-  }
-  else {
-    Serial.print("Elapsed: ");
-    Serial.println(elapsedTime);
+  } else {
+    // printRecievedData();
+    // Serial.print("Elapsed: ");
+    // Serial.println(elapsedTime);
   }
 
   makeStuffWithRecievedData();
