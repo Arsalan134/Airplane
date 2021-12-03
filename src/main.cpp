@@ -107,7 +107,7 @@ void transmit() {
 
 void makeStuffWithRecievedData() {
 
-  byte rollValue = map(recievedData[rollIndex], 0, 255,
+  byte rollValue = map(recievedData[rollIndex], 0, 180,
                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
   byte pitchValue = map(recievedData[pitchIndex], 0, 255,
                         90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
@@ -115,10 +115,10 @@ void makeStuffWithRecievedData() {
 
   // yawValue = constrain(yawValue, 55, 160);
 
-  rollLeft.write(rollValue);
-  rollRight.write(rollValue);
+  rollLeft.write(180 - rollValue);
+  rollRight.write(180 - rollValue);
 
-  pitch.write(180 - pitchValue); // from top left
+  pitch.write(180 - pitchValue);
   yaw.write(pitchValue);
 
   motor.write(recievedData[throttleIndex]);
@@ -126,7 +126,7 @@ void makeStuffWithRecievedData() {
 
 void reset() {
   recievedData[rollIndex] = 90;
-  recievedData[pitchIndex] = 90;
+  recievedData[pitchIndex] = 140;
   recievedData[yawIndex] = 90;
 }
 
@@ -166,7 +166,7 @@ void loop() {
   // printPressureAndTemp();
   delay(delayTime);
   
-  readSensors();
+  // readSensors();
   transmit();
 
   if (radio.available()) {
@@ -181,10 +181,13 @@ void loop() {
   if (elapsedTime >= timeoutMilliSeconds) {
     ACS();
   } else {
-    // printRecievedData();
+    printRecievedData();
     // Serial.print("Elapsed: ");
     // Serial.println(elapsedTime);
   }
 
   makeStuffWithRecievedData();
 }
+
+// I2C device found at address 0x68  !
+// I2C device found at address 0x76  !
