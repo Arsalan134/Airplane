@@ -1,37 +1,4 @@
-
-#include <Arduino.h>
-
-#include <SPI.h>
-#include <Servo.h>
-#include <avr/pgmspace.h>
-#include "RF24.h"
-#include "printf.h"
-#include <printf.h>
 #include <definitions.h>
-
-short delayTime = 20;
-
-//-----------------------------------------
-
-RF24 radio(7, 8);
-
-Servo rollLeft;
-Servo rollRight;
-Servo pitch;
-Servo yaw;
-Servo motor;
-
-boolean timeout = false;
-
-byte addresses[][6] = {"1Node", "2Node"};
-
-byte transmitData[1];
-byte recievedData[4];
-
-unsigned long lastRecievedTime = millis();
-unsigned long currentTime = millis();
-unsigned long timeoutMilliSeconds = 500;
-unsigned long elapsedTime = 0;
 
 void setup() {
 
@@ -44,7 +11,7 @@ void setup() {
   delay(1000);
 
   radio.begin();
-   
+
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
@@ -67,42 +34,33 @@ void setup() {
   Serial.println("Done with setup!");
 }
 
-void printTransmitData() {
-  Serial.print("Sent: \t\t");
-  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
-       i++) {
-    Serial.print(transmitData[i]);
-    Serial.print(" ");
+void loop() {
+
+  // printMotion();  // working
+  // printCamera();  // working
+  // printPressureAndTemp();
+  delay(delayTime);
+
+  // readSensors();
+  transmit();
+
+  if (radio.available()) {
+    radio.read(&recievedData, sizeof(recievedData));
+    lastRecievedTime = millis();
   }
-  Serial.println();
-}
 
-void printRecievedData() {
-  // Serial.print("Recieved: \t");
-  // for (unsigned long i = 0; i < sizeof(recievedData) /
-  // sizeof(recievedData[0]); i++) {
-  Serial.print("Throttle ");
-  Serial.println(recievedData[throttleIndex]);
+  elapsedTime = millis() - lastRecievedTime;
 
-  Serial.print("Yaw ");
-  Serial.println(recievedData[yawIndex]);
+  // Activate ACS when signal is lost
+  if (elapsedTime >= timeoutMilliSeconds) {
+    ACS();
+  } else {
+    printRecievedData();
+    // Serial.print("Elapsed: ");
+    // Serial.println(elapsedTime);
+  }
 
-  Serial.print("Pitch ");
-  Serial.println(recievedData[pitchIndex]);
-
-  Serial.print("Roll ");
-  Serial.println(recievedData[rollIndex]);
-
-  Serial.println();
-}
-
-void readSensors() { transmitData[batteryIndex] = 0; }
-
-void transmit() {
-  // Serial.println("Transmitting...");
-  radio.stopListening();
-  radio.write(&transmitData, sizeof(transmitData));
-  radio.startListening();
+  makeStuffWithRecievedData();
 }
 
 void makeStuffWithRecievedData() {
@@ -122,6 +80,40 @@ void makeStuffWithRecievedData() {
   yaw.write(pitchValue);
 
   motor.write(recievedData[throttleIndex]);
+}
+
+void printTransmitData() {
+  Serial.print("Sent: \t\t");
+  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
+       i++) {
+    Serial.print(transmitData[i]);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
+void printRecievedData() {
+  Serial.print("Throttle ");
+  Serial.println(recievedData[throttleIndex]);
+
+  Serial.print("Yaw ");
+  Serial.println(recievedData[yawIndex]);
+
+  Serial.print("Pitch ");
+  Serial.println(recievedData[pitchIndex]);
+
+  Serial.print("Roll ");
+  Serial.println(recievedData[rollIndex]);
+
+  Serial.println();
+}
+
+void readSensors() { transmitData[batteryIndex] = 0; }
+
+void transmit() {
+  radio.stopListening();
+  radio.write(&transmitData, sizeof(transmitData));
+  radio.startListening();
 }
 
 void reset() {
@@ -157,36 +149,6 @@ void ACS() {
    * 1. Read Accelerometer data
    * 2. Move Wings
    */
-}
-
-void loop() {
-  
-  // printMotion();  // working
-  // printCamera();  // working
-  // printPressureAndTemp();
-  delay(delayTime);
-  
-  // readSensors();
-  transmit();
-
-  if (radio.available()) {
-    radio.read(&recievedData, sizeof(recievedData));
-    lastRecievedTime = millis();
-  }
-
-  currentTime = millis();
-  elapsedTime = currentTime - lastRecievedTime;
-
-  // Activate ACS when signal is lost
-  if (elapsedTime >= timeoutMilliSeconds) {
-    ACS();
-  } else {
-    printRecievedData();
-    // Serial.print("Elapsed: ");
-    // Serial.println(elapsedTime);
-  }
-
-  makeStuffWithRecievedData();
 }
 
 // I2C device found at address 0x68  !

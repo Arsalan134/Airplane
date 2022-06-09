@@ -1,3 +1,39 @@
+
+
+#include <Arduino.h>
+
+#include "RF24.h"
+#include "printf.h"
+#include <SPI.h>
+#include <Servo.h>
+#include <avr/pgmspace.h>
+
+#include <printf.h>
+
+short delayTime = 20;
+
+//-----------------------------------------
+
+RF24 radio(7, 8);
+
+Servo rollLeft;
+Servo rollRight;
+Servo pitch;
+Servo yaw;
+Servo motor;
+
+boolean timeout = false;
+
+byte addresses[][6] = {"1Node", "2Node"};
+
+byte transmitData[1];
+byte recievedData[4];
+
+unsigned long lastRecievedTime = millis();
+unsigned long currentTime = millis();
+unsigned long timeoutMilliSeconds = 500;
+unsigned long elapsedTime = 0;
+
 // PINS------------------------------------
 //   ~   ~ ~         ~ ~  ~     ~     ~
 // 2 3 4 5 6 7  8    9 10 11    12    13
@@ -56,3 +92,11 @@ D13 ~   === FREE ===
 
 // Indices in transmit payload
 #define batteryIndex 0
+
+void printTransmitData();
+void printRecievedData();
+
+void readSensors();
+void makeStuffWithRecievedData();
+void reset();
+void ACS();
