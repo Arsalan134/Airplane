@@ -25,21 +25,18 @@ void setup() {
   radio.printDetails();
 
   // Attach servos
-  motor.attach(motorPin, minThrottle, maxThrottle);
-  rollLeft.attach(rollServoLeftPin);
-  rollRight.attach(rollServoRightPin);
-  pitch.attach(pitchServoPin);
-  yaw.attach(yawServoPin);
+  engine.attach(motorPin, minThrottle, maxThrottle);
+  rollLeftMotor.attach(rollServoLeftPin);
+  rollRightMotor.attach(rollServoRightPin);
+  pitchMotor.attach(pitchServoPin);
+  yawMotor.attach(yawServoPin);
+
+  reset();
 
   Serial.println("Done with setup!");
 }
 
 void loop() {
-
-  // printMotion();  // working
-  // printCamera();  // working
-  // printPressureAndTemp();
-  delay(delayTime);
 
   // readSensors();
   transmit();
@@ -51,35 +48,41 @@ void loop() {
 
   elapsedTime = millis() - lastRecievedTime;
 
-  // Activate ACS when signal is lost
   if (elapsedTime >= timeoutMilliSeconds) {
-    ACS();
+    ACS(); // Activate ACS when signal is lost
   } else {
+    makeStuffWithRecievedData();
     printRecievedData();
     // Serial.print("Elapsed: ");
     // Serial.println(elapsedTime);
   }
-
-  makeStuffWithRecievedData();
 }
 
 void makeStuffWithRecievedData() {
+  byte rollValue = map(recievedData[rollIndex], 0, 180, -90, 90);
+  byte pitchValue = map(recievedData[pitchIndex], 0, 255, -90, 90);
+  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
 
-  byte rollValue = map(recievedData[rollIndex], 0, 180,
-                       90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  byte pitchValue = map(recievedData[pitchIndex], 0, 255,
-                        90 - degreeOfFreedom / 2, 90 + degreeOfFreedom / 2);
-  // byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
+  roll(rollValue);
+  pitch(pitchValue);
+  yaw(yawValue);
 
-  // yawValue = constrain(yawValue, 55, 160);
+  engine.write(recievedData[throttleIndex]);
+}
 
-  rollLeft.write(180 - rollValue);
-  rollRight.write(180 - rollValue);
+void roll(byte byAmount) {
+  rollLeftMotor.write(90 + byAmount);
+  rollRightMotor.write(90 - byAmount);
+}
 
-  pitch.write(180 - pitchValue);
-  yaw.write(pitchValue);
+void pitch(byte byAmount) {
+  pitchMotor.write(90 + byAmount);
+  ;
+}
 
-  motor.write(recievedData[throttleIndex]);
+void yaw(byte byAmount) {
+  yawMotor.write(byAmount);
+  ;
 }
 
 void printTransmitData() {
@@ -141,13 +144,17 @@ void reset() {
 /// Active Control System
 void ACS() {
   recievedData[throttleIndex] = 0;
-  reset();
+  // reset();
 
-  // comment reset fundtion call
+  // comment reset function call
 
   /*
    * 1. Read Accelerometer data
+   *
    * 2. Move Wings
+   * roll();
+   * pitch();
+   * yaw();
    */
 }
 

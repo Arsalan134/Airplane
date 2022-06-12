@@ -16,11 +16,12 @@ short delayTime = 20;
 
 RF24 radio(7, 8);
 
-Servo rollLeft;
-Servo rollRight;
-Servo pitch;
-Servo yaw;
-Servo motor;
+Servo rollLeftMotor;
+Servo rollRightMotor;
+Servo pitchMotor;
+Servo yawMotor;
+
+Servo engine;
 
 boolean timeout = false;
 
@@ -33,6 +34,9 @@ unsigned long lastRecievedTime = millis();
 unsigned long currentTime = millis();
 unsigned long timeoutMilliSeconds = 500;
 unsigned long elapsedTime = 0;
+
+byte rollValue = 90;
+byte pitchValue = 140;
 
 // PINS------------------------------------
 //   ~   ~ ~         ~ ~  ~     ~     ~
@@ -70,19 +74,14 @@ D13 ~   === FREE ===
 
 // look from Top
 
-#define pitchServoPin 5
-
 #define rollServoLeftPin 4
+#define pitchServoPin 5
 #define rollServoRightPin 6
-
-#define yawServoPin 10
-
 #define motorPin 9
+#define yawServoPin 10
 
 #define minThrottle 1000
 #define maxThrottle 2000
-
-#define degreeOfFreedom 90
 
 // Indices in recieve payload
 #define rollIndex 0
@@ -99,4 +98,9 @@ void printRecievedData();
 void readSensors();
 void makeStuffWithRecievedData();
 void reset();
+void transmit();
 void ACS();
+
+void roll(byte byAmount);
+void pitch(byte byAmount);
+void yaw(byte byAmount);
