@@ -13,11 +13,14 @@ void setup() {
   radio.begin();
 
   radio.setAutoAck(false);
+  // add it to ground scketch too
+  radio.setPayloadSize(sizeof(transmitData) / sizeof(byte));
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
   radio.setDataRate(RF24_250KBPS);
+  radio.powerUp();
   radio.startListening();
 
   delay(1000);

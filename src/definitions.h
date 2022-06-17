@@ -101,6 +101,14 @@ void reset();
 void transmit();
 void ACS();
 
+/**
+ * @brief
+ * 0 Degrees is a center. Positive values are to the right. Negative are to the
+ * left. Passing 0 will  end up in the same valve positions
+ *
+ * @param byAmount
+ * Degrees
+ */
 void roll(byte byAmount);
 void pitch(byte byAmount);
 void yaw(byte byAmount);
