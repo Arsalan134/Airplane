@@ -2,15 +2,22 @@
 
 void setup() {
 
-  Serial.begin(57600);
+  Serial.begin(115200);
 
-  delay(2000);
+  delay(1000);
+
+  if (!radio.begin()) {
+    while (true) {
+      Serial.println(F("Radio hardware is not responding!"));
+      delay(500);
+    }
+  }
+
+  delay(1000);
 
   printf_begin();
 
   delay(1000);
-
-  radio.begin();
 
   radio.setAutoAck(false);
   // add it to ground scketch too
@@ -138,8 +145,8 @@ void reset() {
 //   Serial.println(" Pa");
 
 //   Serial.print(F("Approx altitude = "));
-//   Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast! */
-//   Serial.println(" m");
+//   Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast!
+//   */ Serial.println(" m");
 
 //   Serial.println();
 // }
