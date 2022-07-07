@@ -1,12 +1,10 @@
-
-
 #include <Arduino.h>
 
-#include "RF24.h"
-#include "printf.h"
 #include <SPI.h>
 #include <Servo.h>
 #include <avr/pgmspace.h>
+#include "RF24.h"
+#include "printf.h"
 
 #include <printf.h>
 
@@ -54,12 +52,12 @@ D3  ~   SCL I2C
 D4      Left Roll
 D5  ~   Pitch
 D6  ~   Right Roll
-D7      CE
+D7
 D8      CSN
 D9  ~   Motor
 D10 ~   Yaw
-D11 ~   MOSI ? FREE
-D12 ~   MISO ? FREE
+D11 ~   FREE
+D12 ~   FREE
 D13 ~   === FREE ===
 
 */

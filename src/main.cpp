@@ -1,16 +1,18 @@
 #include <definitions.h>
 
 void setup() {
-
   Serial.begin(115200);
 
-  delay(1000);
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // digitalWrite(LED_BUILTIN, HIGH);  // Turn Of LED
 
   if (!radio.begin()) {
     while (true) {
-      Serial.println(F("Radio hardware is not responding!"));
+      Serial.println("Radio hardware is not responding!");
       delay(500);
     }
+  } else {
+    Serial.println("Radio is working");
   }
 
   delay(1000);
@@ -47,7 +49,6 @@ void setup() {
 }
 
 void loop() {
-
   // readSensors();
   transmit();
 
@@ -59,7 +60,7 @@ void loop() {
   elapsedTime = millis() - lastRecievedTime;
 
   if (elapsedTime >= timeoutMilliSeconds) {
-    ACS(); // Activate ACS when signal is lost
+    ACS();  // Activate ACS when signal is lost
   } else {
     makeStuffWithRecievedData();
     printRecievedData();
@@ -97,8 +98,7 @@ void yaw(byte byAmount) {
 
 void printTransmitData() {
   Serial.print("Sent: \t\t");
-  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]);
-       i++) {
+  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
     Serial.print(transmitData[i]);
     Serial.print(" ");
   }
@@ -121,7 +121,9 @@ void printRecievedData() {
   Serial.println();
 }
 
-void readSensors() { transmitData[batteryIndex] = 0; }
+void readSensors() {
+  transmitData[batteryIndex] = 0;
+}
 
 void transmit() {
   radio.stopListening();
@@ -135,21 +137,22 @@ void reset() {
   recievedData[yawIndex] = 90;
 }
 
-// void printPressureAndTemp() {
-//   Serial.print(F("Temperature = "));
-//   Serial.print(bmp.readTemperature());
-//   Serial.println("C");
+void printPressureAndTemp() {
+  //   Serial.print(F("Temperature = "));
+  //   Serial.print(bmp.readTemperature());
+  //   Serial.println("C");
 
-//   Serial.print(F("Pressure = "));
-//   Serial.print(bmp.readPressure());
-//   Serial.println(" Pa");
+  //   Serial.print(F("Pressure = "));
+  //   Serial.print(bmp.readPressure());
+  //   Serial.println(" Pa");
 
-//   Serial.print(F("Approx altitude = "));
-//   Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast!
-//   */ Serial.println(" m");
+  //   Serial.print(F("Approx altitude = "));
+  //   Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast!
+  //                                             */
+  //   Serial.println(" m");
 
-//   Serial.println();
-// }
+  //   Serial.println();
+}
 
 /// Active Control System
 void ACS() {
