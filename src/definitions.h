@@ -8,7 +8,9 @@
 
 #include <printf.h>
 
-short delayTime = 20;
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 
 //-----------------------------------------
 
@@ -90,6 +92,8 @@ D13 ~   === FREE ===
 // Indices in transmit payload
 #define batteryIndex 0
 
+#define delayTime 5
+
 void printTransmitData();
 void printRecievedData();
 
@@ -110,3 +114,6 @@ void ACS();
 void roll(byte byAmount);
 void pitch(byte byAmount);
 void yaw(byte byAmount);
+
+void imu();
+void imuSetup();

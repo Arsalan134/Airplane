@@ -1,23 +1,21 @@
 #include <definitions.h>
 
+Adafruit_MPU6050 mpu;
+
 void setup() {
-  delay(2000);
   Serial.begin(115200);
+
   printf_begin();
 
   // pinMode(LED_BUILTIN, OUTPUT);
   // digitalWrite(LED_BUILTIN, HIGH);  // Turn Of LED
 
-  if (!radio.begin()) {
-    while (true) {
-      Serial.println("Radio hardware is not responding!");
-      delay(500);
-    }
-  } else {
-    Serial.println("Radio is working");
+  while (!radio.begin()) {
+    Serial.println("Radio hardware is not responding!");
+    delay(500);
   }
 
-  delay(1000);
+  Serial.println("Radio is working");
 
 #if !defined(__MIPSEL__)
   while (!Serial) {
@@ -27,23 +25,19 @@ void setup() {
   }
 #endif
 
-  delay(1000);
-
   radio.setAutoAck(false);
-  // add it to ground scketch too
-  radio.setPayloadSize(sizeof(transmitData) / sizeof(byte));
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
   radio.setCRCLength(RF24_CRC_8);
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
   radio.setDataRate(RF24_250KBPS);
-  radio.powerUp();
+
   radio.startListening();
 
-  delay(1000);
-
   radio.printDetails();
+
+  delay(1000);
 
   // Attach servos
   engine.attach(motorPin, minThrottle, maxThrottle);
@@ -53,17 +47,20 @@ void setup() {
   yawMotor.attach(yawServoPin);
 
   reset();
-
-  Serial.println("Done with setup!");
 }
 
 void loop() {
-  delay(10);  // remove later
+  // imu();
 
-  // readSensors();
+  readSensors();
+
+  delay(delayTime);
+
   transmit();
 
-  if (radio.available()) {
+  delay(delayTime);
+
+  while (radio.available()) {
     radio.read(&recievedData, sizeof(recievedData));
     lastRecievedTime = millis();
   }
@@ -71,13 +68,122 @@ void loop() {
   elapsedTime = millis() - lastRecievedTime;
 
   if (elapsedTime >= timeoutMilliSeconds) {
-    ACS();  // Activate ACS when signal is lost
+    Serial.println("Lost Signal");
+    delay(200);
+    ACS();
   } else {
-    makeStuffWithRecievedData();
     printRecievedData();
     // Serial.print("Elapsed: ");
     // Serial.println(elapsedTime);
   }
+
+  makeStuffWithRecievedData();
+}
+
+void imuSetup() {
+  Serial.println("Adafruit MPU6050 test!");
+
+  // Try to initialize!
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+
+  Serial.println("MPU6050 Found!");
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  Serial.print("Accelerometer range set to: ");
+  switch (mpu.getAccelerometerRange()) {
+    case MPU6050_RANGE_2_G:
+      Serial.println("+-2G");
+      break;
+    case MPU6050_RANGE_4_G:
+      Serial.println("+-4G");
+      break;
+    case MPU6050_RANGE_8_G:
+      Serial.println("+-8G");
+      break;
+    case MPU6050_RANGE_16_G:
+      Serial.println("+-16G");
+      break;
+  }
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu.getGyroRange()) {
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
+  }
+
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu.getFilterBandwidth()) {
+    case MPU6050_BAND_260_HZ:
+      Serial.println("260 Hz");
+      break;
+    case MPU6050_BAND_184_HZ:
+      Serial.println("184 Hz");
+      break;
+    case MPU6050_BAND_94_HZ:
+      Serial.println("94 Hz");
+      break;
+    case MPU6050_BAND_44_HZ:
+      Serial.println("44 Hz");
+      break;
+    case MPU6050_BAND_21_HZ:
+      Serial.println("21 Hz");
+      break;
+    case MPU6050_BAND_10_HZ:
+      Serial.println("10 Hz");
+      break;
+    case MPU6050_BAND_5_HZ:
+      Serial.println("5 Hz");
+      break;
+  }
+
+  Serial.println("");
+  delay(100);
+}
+
+void imu() {
+  /* Get new sensor events with the readings */
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  /* Print out the values */
+  Serial.print("Acceleration X: ");
+  Serial.print(a.acceleration.x);
+  Serial.print(", Y: ");
+  Serial.print(a.acceleration.y);
+  Serial.print(", Z: ");
+  Serial.print(a.acceleration.z);
+  Serial.println(" m/s^2");
+
+  Serial.print("Rotation X: ");
+  Serial.print(g.gyro.x);
+  Serial.print(", Y: ");
+  Serial.print(g.gyro.y);
+  Serial.print(", Z: ");
+  Serial.print(g.gyro.z);
+  Serial.println(" rad/s");
+
+  Serial.print("Temperature: ");
+  Serial.print(temp.temperature);
+  Serial.println(" degC");
+
+  Serial.println("");
+  delay(500);
 }
 
 void makeStuffWithRecievedData() {
@@ -137,9 +243,19 @@ void readSensors() {
 }
 
 void transmit() {
+  delay(delayTime);
+
   radio.stopListening();
+
+  delay(delayTime);
+
   radio.write(&transmitData, sizeof(transmitData));
+
+  delay(delayTime);
+
   radio.startListening();
+
+  delay(delayTime);
 }
 
 void reset() {
