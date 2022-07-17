@@ -1,7 +1,9 @@
 #include <definitions.h>
 
 void setup() {
+  delay(2000);
   Serial.begin(115200);
+  printf_begin();
 
   // pinMode(LED_BUILTIN, OUTPUT);
   // digitalWrite(LED_BUILTIN, HIGH);  // Turn Of LED
@@ -17,7 +19,13 @@ void setup() {
 
   delay(1000);
 
-  printf_begin();
+#if !defined(__MIPSEL__)
+  while (!Serial) {
+    delay(100);  // Wait for serial port to connect - used on Leonardo, Teensy
+                 // and other boards with built-in USB CDC serial connection
+    Serial.println("Waiting serial");
+  }
+#endif
 
   delay(1000);
 
@@ -26,6 +34,7 @@ void setup() {
   radio.setPayloadSize(sizeof(transmitData) / sizeof(byte));
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
+  radio.setCRCLength(RF24_CRC_8);
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
   radio.setDataRate(RF24_250KBPS);
@@ -49,6 +58,8 @@ void setup() {
 }
 
 void loop() {
+  delay(10);  // remove later
+
   // readSensors();
   transmit();
 
