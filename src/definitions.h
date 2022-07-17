@@ -38,41 +38,25 @@ unsigned long elapsedTime = 0;
 byte rollValue = 90;
 byte pitchValue = 140;
 
-// PINS------------------------------------
-//   ~   ~ ~         ~ ~  ~     ~     ~
-// 2 3 4 5 6 7  8    9 10 11    12    13
-// I + - - - ce csn  - -  mosi  miso  +
-
-//  I for Interrupt
-
 /*
+Pinout
 
 D0
-D1      Interrupt
-D2
-D3  ~   SCL I2C
-D4      Left Roll
-D5  ~   Pitch
-D6  ~   Right Roll
-D7
-D8      CSN
+D1      Interrupt IMU MPU6050
+D2      I2C SDA
+D3  ~   I2C SCL
+D4      Servo Left Roll
+D5  ~   Servo Pitch
+D6  ~   Servo Right Roll
+D7      Radio CE
+D8      Radio CSN
 D9  ~   Motor
-D10 ~   Yaw
-D11 ~   FREE
-D12 ~   FREE
-D13 ~   === FREE ===
+D10 ~   Servo Yaw
+D11 ~   +
+D12 ~   +
+D13 ~   +
 
 */
-
-// ANALOG
-// short vibroPin = A0;
-// #define photoresistorPin A1 // no need because 33 sense has camera
-
-// DIGITAL
-
-// PWM
-
-// look from Top
 
 #define rollServoLeftPin 4
 #define pitchServoPin 5

@@ -81,9 +81,9 @@ void loop() {
 }
 
 void makeStuffWithRecievedData() {
-  byte rollValue = map(recievedData[rollIndex], 0, 180, -90, 90);
-  byte pitchValue = map(recievedData[pitchIndex], 0, 255, -90, 90);
-  byte yawValue = map(recievedData[yawIndex], 0, 255, 0, 180);
+  byte rollValue = recievedData[rollIndex];
+  byte pitchValue = recievedData[pitchIndex];
+  byte yawValue = recievedData[yawIndex];
 
   roll(rollValue);
   pitch(pitchValue);
@@ -92,19 +92,17 @@ void makeStuffWithRecievedData() {
   engine.write(recievedData[throttleIndex]);
 }
 
-void roll(byte byAmount) {
-  rollLeftMotor.write(90 + byAmount);
-  rollRightMotor.write(90 - byAmount);
+void roll(byte angle) {
+  rollLeftMotor.write(angle);
+  rollRightMotor.write(angle);
 }
 
-void pitch(byte byAmount) {
-  pitchMotor.write(90 + byAmount);
-  ;
+void pitch(byte angle) {
+  pitchMotor.write(angle);
 }
 
-void yaw(byte byAmount) {
-  yawMotor.write(byAmount);
-  ;
+void yaw(byte angle) {
+  yawMotor.write(angle);
 }
 
 void printTransmitData() {
