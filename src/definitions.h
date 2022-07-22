@@ -1,18 +1,14 @@
 #include <Arduino.h>
 
-#include <SPI.h>
-#include <Servo.h>
-#include <avr/pgmspace.h>
-#include "RF24.h"
-#include "printf.h"
-
-#include <printf.h>
-
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
+#include <SPI.h>
+#include <Servo.h>
 #include <Wire.h>
-
-//-----------------------------------------
+#include <avr/pgmspace.h>
+#include <printf.h>
+#include "RF24.h"
+#include "printf.h"
 
 RF24 radio(7, 8);
 
@@ -36,15 +32,16 @@ unsigned long timeoutMilliSeconds = 500;
 unsigned long elapsedTime = 0;
 
 byte rollValue = 90;
-byte pitchValue = 140;
+byte pitchValue = 90;
+byte yawValue = 90;
 
 /*
 Pinout
 
 D0
 D1      Interrupt IMU MPU6050
-D2      I2C SDA
-D3  ~   I2C SCL
+D2
+D3  ~
 D4      Servo Left Roll
 D5  ~   Servo Pitch
 D6  ~   Servo Right Roll
@@ -58,7 +55,7 @@ D13 ~   +
 
 */
 
-#define rollServoLeftPin 4
+#define rollServoLeftPin 3
 #define pitchServoPin 5
 #define rollServoRightPin 6
 #define motorPin 9
@@ -78,7 +75,13 @@ D13 ~   +
 
 #define delayTime 5
 
-void printTransmitData();
+#define degreesOfFreedomAilerons 90
+
+#define pitchBias 0
+#define RollRightBias -5
+#define RollLeftBias 20
+
+void printTransmissionData();
 void printRecievedData();
 
 void readSensors();

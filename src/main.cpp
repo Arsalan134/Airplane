@@ -32,19 +32,18 @@ void setup() {
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1, addresses[1]);
   radio.setDataRate(RF24_250KBPS);
+  radio.enableDynamicPayloads();
 
   radio.startListening();
 
   radio.printDetails();
 
-  delay(1000);
-
-  // Attach servos
   engine.attach(motorPin, minThrottle, maxThrottle);
+
   rollLeftMotor.attach(rollServoLeftPin);
   rollRightMotor.attach(rollServoRightPin);
   pitchMotor.attach(pitchServoPin);
-  yawMotor.attach(yawServoPin);
+  // yawMotor.attach(yawServoPin);
 
   reset();
 }
@@ -72,40 +71,40 @@ void loop() {
     delay(200);
     ACS();
   } else {
-    printRecievedData();
-    // Serial.print("Elapsed: ");
-    // Serial.println(elapsedTime);
+    // printRecievedData();
+    Serial.print("Elapsed: ");
+    Serial.println(elapsedTime);
   }
 
   makeStuffWithRecievedData();
 }
 
 void makeStuffWithRecievedData() {
-  byte rollValue = recievedData[rollIndex];
-  byte pitchValue = recievedData[pitchIndex];
-  byte yawValue = recievedData[yawIndex];
+  rollValue = recievedData[rollIndex];
+  pitchValue = recievedData[pitchIndex];
+  // yawValue = recievedData[yawIndex];
 
-  roll(rollValue);
+  roll(map(rollValue, 0, 180, degreesOfFreedomAilerons / 2, 180 - degreesOfFreedomAilerons / 2));
   pitch(pitchValue);
-  yaw(yawValue);
+  // yaw(yawValue);
 
   engine.write(recievedData[throttleIndex]);
 }
 
 void roll(byte angle) {
-  rollLeftMotor.write(angle);
-  rollRightMotor.write(angle);
+  rollRightMotor.write(angle + RollRightBias);
+  rollLeftMotor.write(angle + RollLeftBias);
 }
 
 void pitch(byte angle) {
-  pitchMotor.write(angle);
+  pitchMotor.write(angle + pitchBias);
 }
 
 void yaw(byte angle) {
   yawMotor.write(angle);
 }
 
-void printTransmitData() {
+void printTransmissionData() {
   Serial.print("Sent: \t\t");
   for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
     Serial.print(transmitData[i]);
@@ -152,7 +151,7 @@ void transmit() {
 
 void reset() {
   recievedData[rollIndex] = 90;
-  recievedData[pitchIndex] = 140;
+  recievedData[pitchIndex] = 90;
   recievedData[yawIndex] = 90;
 }
 
