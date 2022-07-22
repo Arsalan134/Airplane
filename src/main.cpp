@@ -12,8 +12,8 @@ void setup() {
 #endif
 
   imuSetup();
-  radioSetup();
   servoSetup();
+  radioSetup();
 }
 
 void radioSetup() {
@@ -83,14 +83,14 @@ void loop() {
   elapsedTime = millis() - lastRecievedTime;
 
   if (elapsedTime >= timeoutMilliSeconds) {
+    engineOff();
     ACS();
   } else {
+    makeStuffWithRecievedData();
     // printRecievedData();
     // Serial.print("Elapsed: ");
     // Serial.println(elapsedTime);
   }
-
-  makeStuffWithRecievedData();
 }
 
 void makeStuffWithRecievedData() {
@@ -98,20 +98,36 @@ void makeStuffWithRecievedData() {
   pitchValue = recievedData[pitchIndex];
   // yawValue = recievedData[yawIndex];
 
-  roll(map(rollValue, 0, 180, degreesOfFreedomAilerons / 2, 180 - degreesOfFreedomAilerons / 2));
+  roll(rollValue);
   pitch(pitchValue);
   // yaw(yawValue);
 
   engine.write(recievedData[throttleIndex]);
 }
 
+void engineOff() {
+  recievedData[throttleIndex] = 0;
+  engine.write(0);
+}
+
 void roll(byte angle) {
+  angle = constrain(angle, 0, 180);
+  angle = map(angle, 180, 0, degreesOfFreedomAilerons / 2, 180 - degreesOfFreedomAilerons / 2);
+
   rollRightMotor.write(angle + RollRightBias);
   rollLeftMotor.write(angle + RollLeftBias);
 }
 
+void rollBy(byte byDegrees) {
+  roll(90 + byDegrees);
+}
+
 void pitch(byte angle) {
-  pitchMotor.write(angle + pitchBias);
+  pitchMotor.write(angle + defaultPitchBias);
+}
+
+void pitchBy(byte byDegrees) {
+  pitch(90 + byDegrees);
 }
 
 void yaw(byte angle) {
@@ -148,14 +164,14 @@ void resetAirplaneToDefaults() {
 void ACS() {
   mpu.update();
 
-  angleX = mpu.getAngleX();
-  angleY = mpu.getAngleY();
+  correctedRollAmount = mpu.getAngleX() * multiplierACS;
+  correctedPitchAmount = mpu.getAngleY() * multiplierACS + correctedPitchAmountBias;
 
-  correctedRollAngle = constrain(angleX * multiplierACS + 90, 0, 180);
-  correctedPitchAngle = constrain(angleY * multiplierACS + 90, 0, 180);
+  correctedRollAmount = constrain(correctedRollAmount, -90, 90);
+  correctedPitchAmount = constrain(correctedPitchAmount, -90, 90);
 
-  recievedData[rollIndex] = correctedRollAngle;
-  recievedData[pitchIndex] = correctedPitchAngle;
+  rollBy(-correctedRollAmount);
+  pitchBy(correctedPitchAmount);
 }
 
 void printTransmissionData() {

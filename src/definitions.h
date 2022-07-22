@@ -38,12 +38,8 @@ byte rollValue = 90;
 byte pitchValue = 90;
 byte yawValue = 90;
 
-float angleX = 0;
-float angleY = 0;
-float angleZ = 0;
-
-byte correctedRollAngle = 0;
-byte correctedPitchAngle = 0;
+float correctedRollAmount = 0;
+float correctedPitchAmount = 0;
 
 #define multiplierACS 3.0
 
@@ -89,9 +85,11 @@ D13 ~   +
 
 #define degreesOfFreedomAilerons 90
 
-#define pitchBias 0
+#define defaultPitchBias 0
 #define RollRightBias -5
 #define RollLeftBias 20
+
+#define correctedPitchAmountBias 0
 
 void printTransmissionData();
 void printRecievedData();
@@ -116,17 +114,21 @@ void ACS();
 /**
  * @brief
  * 0 Degrees is a center. Positive values are to the right. Negative are to the
- * left. Passing 0 will  end up in the same valve positions
+ * left. Sending '0' will end up in the default flaps positions
  *
  * @param byAmount
  * Degrees
  */
-void roll(byte byAmount);
+void roll(byte degrees);
+void rollBy(byte byDegrees);
 
-void pitch(byte byAmount);
+void pitch(byte degrees);
+void pitchBy(byte byDegrees);
 
 void yaw(byte byAmount);
 
 void imuSetup();
 void radioSetup();
 void servoSetup();
+
+void engineOff();
