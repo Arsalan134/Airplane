@@ -2,15 +2,18 @@
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
+#include <MPU6050_light.h>
 #include <SPI.h>
 #include <Servo.h>
 #include <Wire.h>
 #include <avr/pgmspace.h>
 #include <printf.h>
 #include "RF24.h"
+#include "Wire.h"
 #include "printf.h"
 
 RF24 radio(7, 8);
+MPU6050 mpu(Wire);
 
 Servo rollLeftMotor;
 Servo rollRightMotor;
@@ -34,6 +37,15 @@ unsigned long elapsedTime = 0;
 byte rollValue = 90;
 byte pitchValue = 90;
 byte yawValue = 90;
+
+float angleX = 0;
+float angleY = 0;
+float angleZ = 0;
+
+byte correctedRollAngle = 0;
+byte correctedPitchAngle = 0;
+
+#define multiplierACS 3.0
 
 /*
 Pinout
@@ -86,8 +98,19 @@ void printRecievedData();
 
 void readSensors();
 void makeStuffWithRecievedData();
-void reset();
+
+/** @brief
+ * Reset all values to default values
+ * Throttle down to 0
+ * Servos to center position
+ */
+void resetAirplaneToDefaults();
+
 void transmit();
+
+/** @brief
+ * Active Control System
+ */
 void ACS();
 
 /**
@@ -99,8 +122,11 @@ void ACS();
  * Degrees
  */
 void roll(byte byAmount);
+
 void pitch(byte byAmount);
+
 void yaw(byte byAmount);
 
-void imu();
 void imuSetup();
+void radioSetup();
+void servoSetup();

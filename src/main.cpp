@@ -1,21 +1,7 @@
 #include <definitions.h>
 
-Adafruit_MPU6050 mpu;
-
 void setup() {
   Serial.begin(115200);
-
-  printf_begin();
-
-  // pinMode(LED_BUILTIN, OUTPUT);
-  // digitalWrite(LED_BUILTIN, HIGH);  // Turn Of LED
-
-  while (!radio.begin()) {
-    Serial.println("Radio hardware is not responding!");
-    delay(500);
-  }
-
-  Serial.println("Radio is working");
 
 #if !defined(__MIPSEL__)
   while (!Serial) {
@@ -25,6 +11,21 @@ void setup() {
   }
 #endif
 
+  imuSetup();
+  radioSetup();
+  servoSetup();
+}
+
+void radioSetup() {
+  printf_begin();
+
+  while (!radio.begin()) {
+    Serial.println("Radio hardware is not responding!");
+    delay(100);
+  }
+
+  Serial.println("Radio is working");
+
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(112);
@@ -33,11 +34,28 @@ void setup() {
   radio.openReadingPipe(1, addresses[1]);
   radio.setDataRate(RF24_250KBPS);
   radio.enableDynamicPayloads();
-
-  radio.startListening();
-
   radio.printDetails();
 
+  radio.startListening();
+}
+
+void imuSetup() {
+  Wire.begin();
+
+  byte status = mpu.begin();
+  Serial.print(F("MPU6050 status: "));
+  Serial.println(status);
+
+  while (status != 0) {
+    status = mpu.begin();
+    Serial.println("Connecting to IMU");
+    delay(200);
+  }
+
+  mpu.calcOffsets();
+}
+
+void servoSetup() {
   engine.attach(motorPin, minThrottle, maxThrottle);
 
   rollLeftMotor.attach(rollServoLeftPin);
@@ -45,12 +63,10 @@ void setup() {
   pitchMotor.attach(pitchServoPin);
   // yawMotor.attach(yawServoPin);
 
-  reset();
+  resetAirplaneToDefaults();
 }
 
 void loop() {
-  // imu();
-
   readSensors();
 
   delay(delayTime);
@@ -67,13 +83,11 @@ void loop() {
   elapsedTime = millis() - lastRecievedTime;
 
   if (elapsedTime >= timeoutMilliSeconds) {
-    Serial.println("Lost Signal");
-    delay(200);
     ACS();
   } else {
     // printRecievedData();
-    Serial.print("Elapsed: ");
-    Serial.println(elapsedTime);
+    // Serial.print("Elapsed: ");
+    // Serial.println(elapsedTime);
   }
 
   makeStuffWithRecievedData();
@@ -104,6 +118,46 @@ void yaw(byte angle) {
   yawMotor.write(angle);
 }
 
+void readSensors() {
+  transmitData[batteryIndex] = 0;
+}
+
+void transmit() {
+  delay(delayTime);
+
+  radio.stopListening();
+
+  delay(delayTime);
+
+  radio.write(&transmitData, sizeof(transmitData));
+
+  delay(delayTime);
+
+  radio.startListening();
+
+  delay(delayTime);
+}
+
+void resetAirplaneToDefaults() {
+  recievedData[rollIndex] = 90;
+  recievedData[pitchIndex] = 90;
+  recievedData[yawIndex] = 90;
+  recievedData[throttleIndex] = 0;
+}
+
+void ACS() {
+  mpu.update();
+
+  angleX = mpu.getAngleX();
+  angleY = mpu.getAngleY();
+
+  correctedRollAngle = constrain(angleX * multiplierACS + 90, 0, 180);
+  correctedPitchAngle = constrain(angleY * multiplierACS + 90, 0, 180);
+
+  recievedData[rollIndex] = correctedRollAngle;
+  recievedData[pitchIndex] = correctedPitchAngle;
+}
+
 void printTransmissionData() {
   Serial.print("Sent: \t\t");
   for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
@@ -128,66 +182,3 @@ void printRecievedData() {
 
   Serial.println();
 }
-
-void readSensors() {
-  transmitData[batteryIndex] = 0;
-}
-
-void transmit() {
-  delay(delayTime);
-
-  radio.stopListening();
-
-  delay(delayTime);
-
-  radio.write(&transmitData, sizeof(transmitData));
-
-  delay(delayTime);
-
-  radio.startListening();
-
-  delay(delayTime);
-}
-
-void reset() {
-  recievedData[rollIndex] = 90;
-  recievedData[pitchIndex] = 90;
-  recievedData[yawIndex] = 90;
-}
-
-void printPressureAndTemp() {
-  //   Serial.print(F("Temperature = "));
-  //   Serial.print(bmp.readTemperature());
-  //   Serial.println("C");
-
-  //   Serial.print(F("Pressure = "));
-  //   Serial.print(bmp.readPressure());
-  //   Serial.println(" Pa");
-
-  //   Serial.print(F("Approx altitude = "));
-  //   Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast!
-  //                                             */
-  //   Serial.println(" m");
-
-  //   Serial.println();
-}
-
-/// Active Control System
-void ACS() {
-  recievedData[throttleIndex] = 0;
-  // reset();
-
-  // comment reset function call
-
-  /*
-   * 1. Read Accelerometer data
-   *
-   * 2. Move Wings
-   * roll();
-   * pitch();
-   * yaw();
-   */
-}
-
-// I2C device found at address 0x68  !
-// I2C device found at address 0x76  !
