@@ -24,15 +24,13 @@ Servo engine;
 
 boolean timeout = false;
 
-byte addresses[][6] = {"1Node", "2Node"};
+byte addresses[2][6] = {"1Node", "2Node"};
 
 byte transmitData[1];
-byte recievedData[4];
+byte recievedData[5];
 
-unsigned long lastRecievedTime = millis();
-unsigned long currentTime = millis();
-unsigned long timeoutMilliSeconds = 500;
-unsigned long elapsedTime = 0;
+unsigned long lastRecievedTime = 0;
+unsigned long timeoutInMilliSeconds = 500;
 
 byte rollValue = 90;
 byte pitchValue = 90;
@@ -47,10 +45,10 @@ float correctedPitchAmount = 0;
 Pinout
 
 D0
-D1      Interrupt IMU MPU6050
+D1
 D2
-D3  ~
-D4      Servo Left Roll
+D3  ~   Servo Left Roll
+D4      +
 D5  ~   Servo Pitch
 D6  ~   Servo Right Roll
 D7      Radio CE
@@ -69,14 +67,12 @@ D13 ~   +
 #define motorPin 9
 #define yawServoPin 10
 
-#define minThrottle 1000
-#define maxThrottle 2000
-
 // Indices in recieve payload
 #define rollIndex 0
 #define pitchIndex 1
 #define yawIndex 2
 #define throttleIndex 3
+#define autopilotIsOn 4
 
 // Indices in transmit payload
 #define batteryIndex 0
@@ -113,10 +109,9 @@ void ACS();
 
 /**
  * @brief
- * 0 Degrees is a center. Positive values are to the right. Negative are to the
- * left. Sending '0' will end up in the default flaps positions
+ * 0 Degrees is a center. Sending '0' will end up in the default flaps positions
  *
- * @param byAmount
+ * @param byDegrees
  * Degrees
  */
 void roll(byte degrees);

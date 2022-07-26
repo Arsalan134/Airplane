@@ -42,12 +42,7 @@ void radioSetup() {
 void imuSetup() {
   Wire.begin();
 
-  byte status = mpu.begin();
-  Serial.print(F("MPU6050 status: "));
-  Serial.println(status);
-
-  while (status != 0) {
-    status = mpu.begin();
+  while (mpu.begin()) {
     Serial.println("Connecting to IMU");
     delay(200);
   }
@@ -56,7 +51,7 @@ void imuSetup() {
 }
 
 void servoSetup() {
-  engine.attach(motorPin, minThrottle, maxThrottle);
+  engine.attach(motorPin, 1000, 2000);
 
   rollLeftMotor.attach(rollServoLeftPin);
   rollRightMotor.attach(rollServoRightPin);
@@ -80,23 +75,23 @@ void loop() {
     lastRecievedTime = millis();
   }
 
-  elapsedTime = millis() - lastRecievedTime;
-
-  if (elapsedTime >= timeoutMilliSeconds) {
+  if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
     engineOff();
     ACS();
-  } else {
+  } else
     makeStuffWithRecievedData();
-    // printRecievedData();
-    // Serial.print("Elapsed: ");
-    // Serial.println(elapsedTime);
-  }
 }
 
 void makeStuffWithRecievedData() {
-  rollValue = recievedData[rollIndex];
-  pitchValue = recievedData[pitchIndex];
-  // yawValue = recievedData[yawIndex];
+  // printRecievedData();
+
+  if (recievedData[autopilotIsOn])
+    ACS();
+  else {
+    rollValue = recievedData[rollIndex];
+    pitchValue = recievedData[pitchIndex];
+    // yawValue = recievedData[yawIndex];
+  }
 
   roll(rollValue);
   pitch(pitchValue);
@@ -111,11 +106,11 @@ void engineOff() {
 }
 
 void roll(byte angle) {
-  angle = constrain(angle, 0, 180);
-  angle = map(angle, 180, 0, degreesOfFreedomAilerons / 2, 180 - degreesOfFreedomAilerons / 2);
+  angle = map(constrain(angle, 0, 180), 180, 0, degreesOfFreedomAilerons / 2,
+              180 - degreesOfFreedomAilerons / 2);
 
-  rollRightMotor.write(angle + RollRightBias);
-  rollLeftMotor.write(angle + RollLeftBias);
+  rollRightMotor.write(constrain(angle + RollRightBias, 0, 180));
+  rollLeftMotor.write(constrain(angle + RollLeftBias, 0, 180));
 }
 
 void rollBy(byte byDegrees) {
@@ -123,7 +118,7 @@ void rollBy(byte byDegrees) {
 }
 
 void pitch(byte angle) {
-  pitchMotor.write(angle + defaultPitchBias);
+  pitchMotor.write(constrain(angle + defaultPitchBias, 0, 180));
 }
 
 void pitchBy(byte byDegrees) {
@@ -155,19 +150,20 @@ void transmit() {
 }
 
 void resetAirplaneToDefaults() {
+  recievedData[throttleIndex] = 0;
   recievedData[rollIndex] = 90;
   recievedData[pitchIndex] = 90;
   recievedData[yawIndex] = 90;
-  recievedData[throttleIndex] = 0;
+  recievedData[autopilotIsOn] = false;
 }
 
 void ACS() {
   mpu.update();
 
   correctedRollAmount = mpu.getAngleX() * multiplierACS;
-  correctedPitchAmount = mpu.getAngleY() * multiplierACS + correctedPitchAmountBias;
-
   correctedRollAmount = constrain(correctedRollAmount, -90, 90);
+
+  correctedPitchAmount = mpu.getAngleY() * multiplierACS + correctedPitchAmountBias;
   correctedPitchAmount = constrain(correctedPitchAmount, -90, 90);
 
   rollBy(-correctedRollAmount);
@@ -184,6 +180,9 @@ void printTransmissionData() {
 }
 
 void printRecievedData() {
+  // Serial.print("Elapsed: ");
+  // Serial.println(elapsedTime);
+
   Serial.print("Throttle ");
   Serial.println(recievedData[throttleIndex]);
 
