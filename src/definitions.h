@@ -72,7 +72,7 @@ D13 ~   +
 #define pitchIndex 1
 #define yawIndex 2
 #define throttleIndex 3
-#define autopilotIsOn 4
+#define autopilotIsOnIndex 4
 
 // Indices in transmit payload
 #define batteryIndex 0

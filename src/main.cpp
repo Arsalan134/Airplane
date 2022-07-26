@@ -85,17 +85,17 @@ void loop() {
 void makeStuffWithRecievedData() {
   // printRecievedData();
 
-  if (recievedData[autopilotIsOn])
+  if (recievedData[autopilotIsOnIndex])
     ACS();
   else {
     rollValue = recievedData[rollIndex];
     pitchValue = recievedData[pitchIndex];
     // yawValue = recievedData[yawIndex];
-  }
 
-  roll(rollValue);
-  pitch(pitchValue);
-  // yaw(yawValue);
+    roll(rollValue);
+    pitch(pitchValue);
+    // yaw(yawValue);
+  }
 
   engine.write(recievedData[throttleIndex]);
 }
@@ -154,7 +154,8 @@ void resetAirplaneToDefaults() {
   recievedData[rollIndex] = 90;
   recievedData[pitchIndex] = 90;
   recievedData[yawIndex] = 90;
-  recievedData[autopilotIsOn] = false;
+
+  recievedData[autopilotIsOnIndex] = false;
 }
 
 void ACS() {
@@ -194,6 +195,9 @@ void printRecievedData() {
 
   Serial.print("Roll ");
   Serial.println(recievedData[rollIndex]);
+
+  Serial.print("Autopilot ");
+  Serial.println(recievedData[autopilotIsOnIndex]);
 
   Serial.println();
 }
