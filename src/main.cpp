@@ -83,7 +83,9 @@ void loop() {
 }
 
 void makeStuffWithRecievedData() {
-  // printRecievedData();
+  printRecievedData();
+
+  pitchBias = recievedData[pitchBiasIndex] - 90;
 
   if (recievedData[autopilotIsOnIndex])
     ACS();
@@ -118,7 +120,7 @@ void rollBy(byte byDegrees) {
 }
 
 void pitch(byte angle) {
-  pitchMotor.write(constrain(angle + defaultPitchBias, 0, 180));
+  pitchMotor.write(constrain(angle + pitchBias, 0, 180));
 }
 
 void pitchBy(byte byDegrees) {
@@ -163,11 +165,10 @@ void ACS() {
 
   correctedRollAmount = mpu.getAngleX() * multiplierACS;
   correctedRollAmount = constrain(correctedRollAmount, -90, 90);
-
-  correctedPitchAmount = mpu.getAngleY() * multiplierACS + correctedPitchAmountBias;
-  correctedPitchAmount = constrain(correctedPitchAmount, -90, 90);
-
   rollBy(-correctedRollAmount);
+
+  correctedPitchAmount = mpu.getAngleY() * multiplierACS;
+  correctedPitchAmount = constrain(correctedPitchAmount, -90, 90);
   pitchBy(correctedPitchAmount);
 }
 
@@ -198,6 +199,9 @@ void printRecievedData() {
 
   Serial.print("Autopilot ");
   Serial.println(recievedData[autopilotIsOnIndex]);
+
+  Serial.print("Pitch Bias ");
+  Serial.println(recievedData[pitchBiasIndex]);
 
   Serial.println();
 }

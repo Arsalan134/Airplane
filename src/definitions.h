@@ -27,7 +27,7 @@ boolean timeout = false;
 byte addresses[2][6] = {"1Node", "2Node"};
 
 byte transmitData[1];
-byte recievedData[5];
+byte recievedData[6];
 
 unsigned long lastRecievedTime = 0;
 unsigned long timeoutInMilliSeconds = 500;
@@ -36,6 +36,7 @@ byte rollValue = 90;
 byte pitchValue = 90;
 byte yawValue = 90;
 
+// Used by IMU to correct airplane
 float correctedRollAmount = 0;
 float correctedPitchAmount = 0;
 
@@ -73,6 +74,7 @@ D13 ~   +
 #define yawIndex 2
 #define throttleIndex 3
 #define autopilotIsOnIndex 4
+#define pitchBiasIndex 5
 
 // Indices in transmit payload
 #define batteryIndex 0
@@ -81,11 +83,9 @@ D13 ~   +
 
 #define degreesOfFreedomAilerons 90
 
-#define defaultPitchBias 0
 #define RollRightBias -5
 #define RollLeftBias 20
-
-#define correctedPitchAmountBias 0
+float pitchBias = 0;
 
 void printTransmissionData();
 void printRecievedData();
