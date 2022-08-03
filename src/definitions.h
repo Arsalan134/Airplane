@@ -1,19 +1,40 @@
 #include <Arduino.h>
 
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
-#include <MPU6050_light.h>
-#include <SPI.h>
 #include <Servo.h>
-#include <Wire.h>
-#include <avr/pgmspace.h>
 #include <printf.h>
+#include <string.h>
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps612.h"
 #include "RF24.h"
-#include "Wire.h"
-#include "printf.h"
 
 RF24 radio(7, 8);
-MPU6050 mpu(Wire);
+MPU6050 mpu;
+
+uint8_t fifoBuffer[64];  // FIFO storage buffer
+uint8_t devStatus = 0;
+
+// orientation/motion vars
+Quaternion q;         // [w, x, y, z]         quaternion container
+VectorInt16 aa;       // [x, y, z]            accel sensor measurements
+VectorInt16 gy;       // [x, y, z]            gyro sensor measurements
+VectorInt16 aaReal;   // [x, y, z]            gravity-free accel sensor measurements
+VectorInt16 aaWorld;  // [x, y, z]            world-frame accel sensor measurements
+VectorFloat gravity;  // [x, y, z]            gravity vector
+float euler[3];       // [psi, theta, phi]    Euler angle container
+float ypr[3];         // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+
+// Magnetometer BMM150
+// BMM150 bmm;
+// bmm150_mag_data bmm150_value;
+// bmm150_mag_data bmm150_value_offset;
+// short headingDegrees = 0;
+
+// Barometer DPS310
+// Adafruit_DPS310 dps;
+// Adafruit_Sensor* dps_temp = 0;
+// Adafruit_Sensor* dps_pressure = 0;
+// short pressure = 0;
+// short temperature = 0;
 
 Servo rollLeftMotor;
 Servo rollRightMotor;
@@ -22,25 +43,31 @@ Servo yawMotor;
 
 Servo engine;
 
+// Sd2Card card;
+// SdVolume volume;
+// SdFile root;
+
 boolean timeout = false;
 
 byte addresses[2][6] = {"1Node", "2Node"};
 
 byte transmitData[1];
-byte recievedData[6];
+byte recievedData[7];
 
 unsigned long lastRecievedTime = 0;
-unsigned long timeoutInMilliSeconds = 500;
 
-byte rollValue = 90;
-byte pitchValue = 90;
-byte yawValue = 90;
+#define timeoutInMilliSeconds 500
+
+// Inertial Measurment Unit data
+short currentRollValue = 0;
+short currentPitchValue = 0;
 
 // Used by IMU to correct airplane
-float correctedRollAmount = 0;
-float correctedPitchAmount = 0;
+short correctedRollAmount = 0;
+short correctedPitchAmount = 0;
 
-#define multiplierACS 3.0
+#define multiplierRollACS 3.0
+#define multiplierPitchACS 2.0
 
 /*
 Pinout
@@ -61,12 +88,14 @@ D12 ~   +
 D13 ~   +
 
 */
-
+#define INTERRUPT_PIN 2
 #define rollServoLeftPin 3
 #define pitchServoPin 5
 #define rollServoRightPin 6
 #define motorPin 9
 #define yawServoPin 10
+
+#define sdCardPin 11
 
 // Indices in recieve payload
 #define rollIndex 0
@@ -75,6 +104,7 @@ D13 ~   +
 #define throttleIndex 3
 #define autopilotIsOnIndex 4
 #define pitchBiasIndex 5
+#define calibrateIndex 6
 
 // Indices in transmit payload
 #define batteryIndex 0
@@ -85,6 +115,7 @@ D13 ~   +
 
 #define RollRightBias -5
 #define RollLeftBias 20
+
 float pitchBias = 0;
 
 void printTransmissionData();
@@ -101,6 +132,13 @@ void makeStuffWithRecievedData();
 void resetAirplaneToDefaults();
 
 void transmit();
+
+void IMULoop();
+void calibrate(uint32_t timeout);
+
+void magnetometerLoop();
+
+void barometerLoop();
 
 /** @brief
  * Active Control System
@@ -122,8 +160,19 @@ void pitchBy(byte byDegrees);
 
 void yaw(byte byAmount);
 
+void lostRadio();
+
 void imuSetup();
 void radioSetup();
 void servoSetup();
+void magnetometerSetup();
+void barometerSetup();
+
+void dmpDataReady();
 
 void engineOff();
+
+// void saveToFile(File file);
+void setupSDCard();
+void printCardInfo();
+// void printDirectory(File dir, int numTabs);
