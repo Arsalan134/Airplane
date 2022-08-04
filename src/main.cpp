@@ -95,7 +95,6 @@ void imuSetup() {
   // initialize device
   Serial.println("Initializing I2C devices...");
   mpu.initialize();
-  pinMode(INTERRUPT_PIN, INPUT);
 
   // verify connection
   Serial.println("Testing device connections... ");
@@ -115,18 +114,7 @@ void imuSetup() {
 
     mpu.PrintActiveOffsets();
 
-    // turn on the DMP, now that it's ready
-    Serial.println("Enabling DMP...");
     mpu.setDMPEnabled(true);
-
-    // enable Arduino interrupt detection
-    // Serial.print("Enabling interrupt detection (Arduino external interrupt ");
-    // Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
-    // Serial.println(")...");
-    // attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
-
-    // set our DMP Ready flag so the main loop() function knows it's okay to use it
-    Serial.println("DMP ready!");
 
   } else {
     // ERROR!
@@ -165,8 +153,6 @@ void servoSetup() {
 
 void loop() {
   readSensors();
-
-  delay(delayTime);
 
   transmit();
 
