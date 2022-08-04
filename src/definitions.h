@@ -67,7 +67,7 @@ short correctedRollAmount = 0;
 short correctedPitchAmount = 0;
 
 #define multiplierRollACS 3.0
-#define multiplierPitchACS 2.0
+#define multiplierPitchACS 3.0
 
 /*
 Pinout
@@ -89,9 +89,9 @@ D13 ~   +
 
 */
 #define INTERRUPT_PIN 2
-#define rollServoLeftPin 3
+#define rollServoLeftPin 6
 #define pitchServoPin 5
-#define rollServoRightPin 6
+#define rollServoRightPin 3
 #define motorPin 9
 #define yawServoPin 10
 
@@ -113,8 +113,8 @@ D13 ~   +
 
 #define degreesOfFreedomAilerons 90
 
-#define RollRightBias -5
-#define RollLeftBias 20
+#define RollLeftBias -20  // negative pitchs down
+#define RollRightBias 20  // negative pitchs down
 
 float pitchBias = 0;
 

@@ -337,7 +337,7 @@ void ACS() {
 
   correctedPitchAmount = currentPitchValue * multiplierPitchACS;
   correctedPitchAmount = constrain(correctedPitchAmount, -90, 90);
-  pitchBy(correctedPitchAmount);
+  pitchBy(-correctedPitchAmount);
 }
 
 void printTransmissionData() {
