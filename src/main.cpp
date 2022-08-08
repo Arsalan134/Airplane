@@ -11,50 +11,58 @@ void setup() {
   }
 #endif
 
-  radioSetup();
-  imuSetup();
+  // radioSetup();
+  // imuSetup();
   servoSetup();
 
   // setupSDCard();
-  // printCardInfo();
-  // barometerSetup();
+
+  barometerSetup();
   // magnetometerSetup();
 }
 
-// void barometerSetup() {
-//   Serial.println("Initializing Barometer DPS310 ...");
+void barometerSetup() {
+#ifdef isLeonardo
 
-//   if (!dps.begin_I2C()) {
-//     Serial.println("Failed to find DPS310");
-//     return;
-//   }
+  Serial.println("Initializing Barometer DPS310 ...");
 
-//   Serial.println("DPS OK!");
+  if (!dps.begin_I2C()) {
+    Serial.println("Failed to find DPS310");
+    return;
+  }
 
-//   dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
-//   dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
+  Serial.println("DPS310 OK!");
 
-//   // dps_temp->printSensorDetails();
-//   dps_pressure->printSensorDetails();
-// }
+  // Setup highest precision
+  dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
+  dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
 
-// void magnetometerSetup() {
-//   bmm = BMM150();
+  Serial.println("DPS310 Configured");
 
-//   if (bmm.initialize() == BMM150_E_ID_NOT_CONFORM) {
-//     Serial.println("BMM150 Chip ID can not read!");
-//     return;
-//   }
+  dps_temp->printSensorDetails();
+  dps_pressure->printSensorDetails();
+#endif
+}
 
-//   Serial.println("BMM150 Initialize done!");
+void magnetometerSetup() {
+#ifdef isLeonardo
+  bmm = BMM150();
 
-//   Serial.println("BMM150 Start figure-8 calibration after 3 seconds.");
-//   delay(3000);
+  if (bmm.initialize() == BMM150_E_ID_NOT_CONFORM) {
+    Serial.println("BMM150 Chip ID can not read!");
+    return;
+  }
 
-//   // calibrate(10000);
+  Serial.println("BMM150 Initialize done!");
 
-//   Serial.print("\n\rBMM150 Calibrate done..");
-// }
+  Serial.println("BMM150 Start figure-8 calibration after 3 seconds.");
+  delay(3000);
+
+  // calibrate(10000);
+
+  Serial.print("\n\rBMM150 Calibrate done..");
+#endif
+}
 
 void radioSetup() {
   printf_begin();
@@ -80,6 +88,10 @@ void radioSetup() {
 }
 
 void imuSetup() {
+#ifdef isLeonardo
+#endif
+
+#ifdef isNano
   Wire.begin();
   Wire.setClock(400000);  // 400kHz I2C clock. Comment this line if having compilation difficulties
 
@@ -125,6 +137,7 @@ void imuSetup() {
     Serial.print(devStatus);
     Serial.println(")");
   }
+#endif
 }
 
 void servoSetup() {
@@ -138,22 +151,30 @@ void servoSetup() {
   resetAirplaneToDefaults();
 }
 
-// void setupSDCard() {
-//   Serial.print("Initializing SD card...");
+void setupSDCard() {
+#ifdef isLeonardo
+  Serial.print("Initializing SD card...");
 
-//   // pinMode(sdCardPin, OUTPUT); ? necessary ?
+  // pinMode(sdCardPin, OUTPUT); ? necessary ?
 
-//   while (!SD.begin(sdCardPin)) {
-//     Serial.println("SD Card initialization failed!");
-//     delay(100);
-//   }
+  while (!SD.begin(sdCardPin)) {
+    Serial.println("SD Card initialization failed!");
+    delay(100);
+  }
 
-//   Serial.println("SD Card initialization done.");
-// }
+  Serial.println("SD Card initialization done.");
+  // printCardInfo();
+
+#endif
+}
 
 void loop() {
   readSensors();
 
+  // radioLoop();
+}
+
+void radioLoop() {
   transmit();
 
   delay(delayTime);
@@ -170,6 +191,7 @@ void loop() {
 }
 
 void IMULoop() {
+#ifdef isNano
   if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) {
     // display Euler angles in degrees
     mpu.dmpGetQuaternion(&q, fifoBuffer);
@@ -179,56 +201,54 @@ void IMULoop() {
     currentRollValue = ypr[2] * 180 / M_PI;
     currentPitchValue = ypr[1] * 180 / M_PI;
   }
+#endif
 }
 
-// void magnetometerLoop() {
-//   bmm.read_mag_data();
+void magnetometerLoop() {
+#ifdef isLeonardo
+  bmm.read_mag_data();
 
-//   bmm150_value.x = bmm.raw_mag_data.raw_datax - bmm150_value_offset.x;
-//   bmm150_value.y = bmm.raw_mag_data.raw_datay - bmm150_value_offset.y;
-//   bmm150_value.z = bmm.raw_mag_data.raw_dataz - bmm150_value_offset.z;
+  bmm150_value.x = bmm.raw_mag_data.raw_datax - bmm150_value_offset.x;
+  bmm150_value.y = bmm.raw_mag_data.raw_datay - bmm150_value_offset.y;
+  bmm150_value.z = bmm.raw_mag_data.raw_dataz - bmm150_value_offset.z;
 
-//   short heading = atan2(bmm150_value.x, bmm150_value.y);
+  short heading = atan2(bmm150_value.x, bmm150_value.y);
 
-//   if (heading < 0)
-//     heading += 2 * PI;
+  if (heading < 0)
+    heading += 2 * PI;
 
-//   if (heading > 2 * PI)
-//     heading -= 2 * PI;
+  if (heading > 2 * PI)
+    heading -= 2 * PI;
 
-//   headingDegrees = heading * 180 / M_PI;
+  headingDegrees = heading * 180 / M_PI;
 
-//   Serial.print("Heading: ");
-//   Serial.println(headingDegrees);
-// }
+  Serial.print("Heading: ");
+  Serial.println(headingDegrees);
+#endif
+}
 
-// void barometerLoop() {
-// sensors_event_t temp_event;
-// sensors_event_t pressure_event;
+void barometerLoop() {
+#ifdef isLeonardo
+  sensors_event_t temp_event, pressure_event;
 
-// if (dps.temperatureAvailable()) {
-//   dps_temp->getEvent(&temp_event);
-// temperature = temp_event.temperature;
+  if (dps.temperatureAvailable()) {
+    dps_temp->getEvent(&temp_event);
+    Serial.print(F("Temperature = "));
+    Serial.print(temp_event.temperature);
+    Serial.println(" *C");
+  }
 
-//   Serial.print(F("Temperature = "));
-//   Serial.print(temperature);
-//   Serial.println(" *C");
-//   Serial.println();
-// }
+  // Reading pressure also reads temp so don't check pressure
+  // before temp!
+  if (dps.pressureAvailable()) {
+    dps_pressure->getEvent(&pressure_event);
+    Serial.print(F("Pressure = "));
+    Serial.print(pressure_event.pressure);
+    Serial.println(" hPa");
+  }
 
-//   // Reading pressure also reads temp so don't check pressure
-//   // before temp!
-//   if (dps.pressureAvailable()) {
-//     dps_pressure->getEvent(&pressure_event);
-//     pressure = pressure_event.pressure;
-
-//     Serial.print(F("Pressure = "));
-//     Serial.print(pressure);
-//     Serial.println(" hPa");
-
-//     Serial.println();
-//   }
-// }
+#endif
+}
 
 void lostRadio() {
   engineOff();
@@ -285,9 +305,9 @@ void yaw(byte angle) {
 void readSensors() {
   transmitData[batteryIndex] = 0;
 
-  IMULoop();
+  // IMULoop();
 
-  // barometerLoop();
+  barometerLoop();
   // magnetometerLoop();
 }
 
@@ -393,8 +413,8 @@ void printRecievedData() {
 
 //   // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
 //   if (!volume.init(card)) {
-//     Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
-//     return;
+//     Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the
+//     card"); return;
 //   }
 
 //   Serial.print("Clusters:          ");

@@ -3,16 +3,27 @@
 #include <Servo.h>
 #include <printf.h>
 #include <string.h>
-#include "I2Cdev.h"
-#include "MPU6050_6Axis_MotionApps612.h"
 #include "RF24.h"
 
-RF24 radio(7, 8);
-MPU6050 mpu;
+#define isLeonardo
+// #define isNano
 
+#ifdef isLeonardo
+#include <Adafruit_DPS310.h>
+#include <SD.h>
+#include "bmm150.h"
+#include "bmm150_defs.h"
+#endif
+
+#ifdef isNano
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps612.h"
+#endif
+
+#ifdef isNano
+MPU6050 mpu;
 uint8_t fifoBuffer[64];  // FIFO storage buffer
 uint8_t devStatus = 0;
-
 // orientation/motion vars
 Quaternion q;         // [w, x, y, z]         quaternion container
 VectorInt16 aa;       // [x, y, z]            accel sensor measurements
@@ -22,19 +33,22 @@ VectorInt16 aaWorld;  // [x, y, z]            world-frame accel sensor measureme
 VectorFloat gravity;  // [x, y, z]            gravity vector
 float euler[3];       // [psi, theta, phi]    Euler angle container
 float ypr[3];         // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+#endif
 
+#ifdef isLeonardo
 // Magnetometer BMM150
-// BMM150 bmm;
-// bmm150_mag_data bmm150_value;
-// bmm150_mag_data bmm150_value_offset;
-// short headingDegrees = 0;
+BMM150 bmm;
+bmm150_mag_data bmm150_value;
+bmm150_mag_data bmm150_value_offset;
+short headingDegrees = 0;
 
 // Barometer DPS310
-// Adafruit_DPS310 dps;
-// Adafruit_Sensor* dps_temp = 0;
-// Adafruit_Sensor* dps_pressure = 0;
-// short pressure = 0;
-// short temperature = 0;
+Adafruit_DPS310 dps;
+Adafruit_Sensor* dps_temp = dps.getTemperatureSensor();
+Adafruit_Sensor* dps_pressure = dps.getPressureSensor();
+#endif
+
+RF24 radio(7, 8);
 
 Servo rollLeftMotor;
 Servo rollRightMotor;
@@ -43,7 +57,7 @@ Servo yawMotor;
 
 Servo engine;
 
-// Sd2Card card;
+// Sd2Card carda
 // SdVolume volume;
 // SdFile root;
 
@@ -88,10 +102,11 @@ D12 ~   +
 D13 ~   +
 
 */
-#define INTERRUPT_PIN 2
-#define rollServoLeftPin 6
-#define pitchServoPin 5
+// #define INTERRUPT_PIN 2
 #define rollServoRightPin 3
+#define pitchServoPin 5
+#define rollServoLeftPin 6
+#define buzzerPin 7
 #define motorPin 9
 #define yawServoPin 10
 
@@ -132,9 +147,9 @@ void makeStuffWithRecievedData();
 void resetAirplaneToDefaults();
 
 void transmit();
+void radioLoop();
 
 void IMULoop();
-void calibrate(uint32_t timeout);
 
 void magnetometerLoop();
 
