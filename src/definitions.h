@@ -48,7 +48,7 @@ Adafruit_Sensor* dps_temp = dps.getTemperatureSensor();
 Adafruit_Sensor* dps_pressure = dps.getPressureSensor();
 #endif
 
-RF24 radio(7, 8);
+RF24 radio(12, 8);
 
 Servo rollLeftMotor;
 Servo rollRightMotor;

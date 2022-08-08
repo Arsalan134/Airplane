@@ -3,15 +3,16 @@
 void setup() {
   Serial.begin(115200);
 
+// Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC
+// serial connection
 #if !defined(__MIPSEL__)
   while (!Serial) {
-    delay(100);  // Wait for serial port to connect - used on Leonardo, Teensy
-                 // and other boards with built-in USB CDC serial connection
+    delay(100);
     Serial.println("Waiting serial");
   }
 #endif
 
-  // radioSetup();
+  radioSetup();
   // imuSetup();
   servoSetup();
 
@@ -19,6 +20,10 @@ void setup() {
 
   barometerSetup();
   // magnetometerSetup();
+
+  Serial.println("------------- SETUP IS DONE -------------");
+  Serial.println();
+  Serial.println();
 }
 
 void barometerSetup() {
@@ -235,16 +240,16 @@ void barometerLoop() {
     dps_temp->getEvent(&temp_event);
     Serial.print(F("Temperature = "));
     Serial.print(temp_event.temperature);
-    Serial.println(" *C");
+    Serial.println(" °C");
   }
 
   // Reading pressure also reads temp so don't check pressure
   // before temp!
   if (dps.pressureAvailable()) {
     dps_pressure->getEvent(&pressure_event);
-    Serial.print(F("Pressure = "));
-    Serial.print(pressure_event.pressure);
-    Serial.println(" hPa");
+    // Serial.print(F("Pressure = "));
+    // Serial.print(pressure_event.pressure);
+    // Serial.println(" hPa");
   }
 
 #endif
