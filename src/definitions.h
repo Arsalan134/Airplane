@@ -2,7 +2,8 @@
 
 #include <Servo.h>
 #include <printf.h>
-#include <string.h>
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps612.h"
 #include "RF24.h"
 
 #define isLeonardo
@@ -10,20 +11,11 @@
 
 #ifdef isLeonardo
 #include <Adafruit_DPS310.h>
-#include <SD.h>
-#include "bmm150.h"
-#include "bmm150_defs.h"
+// #include <SD.h>
+// #include "bmm150.h"
+// #include "bmm150_defs.h"
 #endif
 
-#ifdef isNano
-#include "I2Cdev.h"
-#include "MPU6050_6Axis_MotionApps612.h"
-#endif
-
-#ifdef isNano
-MPU6050 mpu;
-uint8_t fifoBuffer[64];  // FIFO storage buffer
-uint8_t devStatus = 0;
 // orientation/motion vars
 Quaternion q;         // [w, x, y, z]         quaternion container
 VectorInt16 aa;       // [x, y, z]            accel sensor measurements
@@ -33,14 +25,13 @@ VectorInt16 aaWorld;  // [x, y, z]            world-frame accel sensor measureme
 VectorFloat gravity;  // [x, y, z]            gravity vector
 float euler[3];       // [psi, theta, phi]    Euler angle container
 float ypr[3];         // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-#endif
 
 #ifdef isLeonardo
 // Magnetometer BMM150
-BMM150 bmm;
-bmm150_mag_data bmm150_value;
-bmm150_mag_data bmm150_value_offset;
-short headingDegrees = 0;
+// BMM150 bmm;
+// bmm150_mag_data bmm150_value;
+// bmm150_mag_data bmm150_value_offset;
+// short headingDegrees = 0;
 
 // Barometer DPS310
 Adafruit_DPS310 dps;
@@ -48,12 +39,15 @@ Adafruit_Sensor* dps_temp = dps.getTemperatureSensor();
 Adafruit_Sensor* dps_pressure = dps.getPressureSensor();
 #endif
 
+MPU6050 mpu;
+uint8_t fifoBuffer[64];  // FIFO storage buffer
+
 RF24 radio(12, 8);
 
 Servo rollLeftMotor;
 Servo rollRightMotor;
 Servo pitchMotor;
-Servo yawMotor;
+// Servo yawMotor;
 
 Servo engine;
 
@@ -83,34 +77,15 @@ short correctedPitchAmount = 0;
 #define multiplierRollACS 3.0
 #define multiplierPitchACS 3.0
 
-/*
-Pinout
-
-D0
-D1
-D2
-D3  ~   Servo Left Roll
-D4      +
-D5  ~   Servo Pitch
-D6  ~   Servo Right Roll
-D7      Radio CE
-D8      Radio CSN
-D9  ~   Motor
-D10 ~   Servo Yaw
-D11 ~   +
-D12 ~   +
-D13 ~   +
-
-*/
 // #define INTERRUPT_PIN 2
-#define rollServoRightPin 3
+
 #define pitchServoPin 5
 #define rollServoLeftPin 6
 #define buzzerPin 7
 #define motorPin 9
-#define yawServoPin 10
-
+#define rollServoRightPin 10
 #define sdCardPin 11
+#define yawServoPin 13
 
 // Indices in recieve payload
 #define rollIndex 0
@@ -133,6 +108,21 @@ D13 ~   +
 
 float pitchBias = 0;
 
+// Setup
+void imuSetup();
+void radioSetup();
+void servoSetup();
+void magnetometerSetup();
+void barometerSetup();
+
+// Loop
+void IMULoop();
+void magnetometerLoop();
+void barometerLoop();
+
+// Radio
+void transmit();
+void radioLoop();
 void printTransmissionData();
 void printRecievedData();
 
@@ -145,15 +135,6 @@ void makeStuffWithRecievedData();
  * Servos to center position
  */
 void resetAirplaneToDefaults();
-
-void transmit();
-void radioLoop();
-
-void IMULoop();
-
-void magnetometerLoop();
-
-void barometerLoop();
 
 /** @brief
  * Active Control System
@@ -177,17 +158,9 @@ void yaw(byte byAmount);
 
 void lostRadio();
 
-void imuSetup();
-void radioSetup();
-void servoSetup();
-void magnetometerSetup();
-void barometerSetup();
-
-void dmpDataReady();
-
 void engineOff();
 
 // void saveToFile(File file);
-void setupSDCard();
-void printCardInfo();
+// void setupSDCard();
+// void printCardInfo();
 // void printDirectory(File dir, int numTabs);

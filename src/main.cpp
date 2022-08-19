@@ -3,8 +3,6 @@
 void setup() {
   Serial.begin(115200);
 
-// Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC
-// serial connection
 #if !defined(__MIPSEL__)
   while (!Serial) {
     delay(100);
@@ -14,60 +12,54 @@ void setup() {
 
   radioSetup();
   // imuSetup();
-  servoSetup();
-
+  // servoSetup();
   // setupSDCard();
-
-  barometerSetup();
+  // barometerSetup();
   // magnetometerSetup();
-
-  Serial.println("------------- SETUP IS DONE -------------");
-  Serial.println();
-  Serial.println();
 }
 
 void barometerSetup() {
-#ifdef isLeonardo
+  // #ifdef isLeonardo
 
-  Serial.println("Initializing Barometer DPS310 ...");
+  //   // Serial.println("Initializing Barometer DPS310 ...");
 
-  if (!dps.begin_I2C()) {
-    Serial.println("Failed to find DPS310");
-    return;
-  }
+  //   if (!dps.begin_I2C()) {
+  //     Serial.println("Failed to find DPS310");
+  //     return;
+  //   }
 
-  Serial.println("DPS310 OK!");
+  //   // Serial.println("DPS310 OK!");
 
-  // Setup highest precision
-  dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
-  dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
+  //   // Setup highest precision
+  //   dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
+  //   dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
 
-  Serial.println("DPS310 Configured");
+  //   // Serial.println("DPS310 Configured");
 
-  dps_temp->printSensorDetails();
-  dps_pressure->printSensorDetails();
-#endif
+  //   // dps_temp->printSensorDetails();
+  //   // dps_pressure->printSensorDetails();
+  // #endif
 }
 
-void magnetometerSetup() {
-#ifdef isLeonardo
-  bmm = BMM150();
+// void magnetometerSetup() {
+// #ifdef isLeonardo
+//   bmm = BMM150();
 
-  if (bmm.initialize() == BMM150_E_ID_NOT_CONFORM) {
-    Serial.println("BMM150 Chip ID can not read!");
-    return;
-  }
+//   if (bmm.initialize() == BMM150_E_ID_NOT_CONFORM) {
+//     Serial.println("BMM150 Chip ID can not read!");
+//     return;
+//   }
 
-  Serial.println("BMM150 Initialize done!");
+//   Serial.println("BMM150 Initialize done!");
 
-  Serial.println("BMM150 Start figure-8 calibration after 3 seconds.");
-  delay(3000);
+//   Serial.println("BMM150 Start figure-8 calibration after 3 seconds.");
+//   delay(3000);
 
-  // calibrate(10000);
+//   // calibrate(10000);
 
-  Serial.print("\n\rBMM150 Calibrate done..");
-#endif
-}
+//   Serial.print("\n\rBMM150 Calibrate done..");
+// #endif
+// }
 
 void radioSetup() {
   printf_begin();
@@ -76,8 +68,6 @@ void radioSetup() {
     Serial.println("Radio hardware is not responding!");
     delay(100);
   }
-
-  Serial.println("Radio is working");
 
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_MAX);
@@ -93,10 +83,6 @@ void radioSetup() {
 }
 
 void imuSetup() {
-#ifdef isLeonardo
-#endif
-
-#ifdef isNano
   Wire.begin();
   Wire.setClock(400000);  // 400kHz I2C clock. Comment this line if having compilation difficulties
 
@@ -110,39 +96,36 @@ void imuSetup() {
   // crystal solution for the UART timer.
 
   // initialize device
-  Serial.println("Initializing I2C devices...");
   mpu.initialize();
 
   // verify connection
-  Serial.println("Testing device connections... ");
+  // Serial.println("Testing device connections... ");
   Serial.println(mpu.testConnection() ? "MPU6050 connection successful"
                                       : "MPU6050 connection failed");
 
   // load and configure the DMP
-  Serial.println("Initializing DMP...");
-  devStatus = mpu.dmpInitialize();
+  // Serial.println("Initializing DMP...");
 
-  if (!devStatus) {
+  if (!mpu.dmpInitialize()) {
     // Calibration Time: generate offsets and calibrate our MPU6050
     mpu.CalibrateAccel(7);
     mpu.CalibrateGyro(7);
 
-    Serial.println();
+    // Serial.println();
 
-    mpu.PrintActiveOffsets();
+    // mpu.PrintActiveOffsets();
 
     mpu.setDMPEnabled(true);
-
-  } else {
-    // ERROR!
-    // 1 = initial memory load failed
-    // 2 = DMP configuration updates failed
-    // (if it's going to break, usually the code will be 1)
-    Serial.print("DMP Initialization failed (code ");
-    Serial.print(devStatus);
-    Serial.println(")");
   }
-#endif
+  // else {
+  // ERROR!
+  // 1 = initial memory load failed
+  // 2 = DMP configuration updates failed
+  // (if it's going to break, usually the code will be 1)
+  // Serial.print("DMP Initialization failed (code ");
+  // Serial.print(devStatus);
+  // Serial.println(")");
+  // }
 }
 
 void servoSetup() {
@@ -156,27 +139,31 @@ void servoSetup() {
   resetAirplaneToDefaults();
 }
 
-void setupSDCard() {
-#ifdef isLeonardo
-  Serial.print("Initializing SD card...");
+// void setupSDCard() {
+// #ifdef isLeonardo
+//   Serial.print("Initializing SD card...");
 
-  // pinMode(sdCardPin, OUTPUT); ? necessary ?
+//   // pinMode(sdCardPin, OUTPUT); ? necessary ?
 
-  while (!SD.begin(sdCardPin)) {
-    Serial.println("SD Card initialization failed!");
-    delay(100);
-  }
+//   while (!SD.begin(sdCardPin)) {
+//     Serial.println("SD Card initialization failed!");
+//     delay(100);
+//   }
 
-  Serial.println("SD Card initialization done.");
-  // printCardInfo();
+//   Serial.println("SD Card initialization done.");
+//   // printCardInfo();
 
-#endif
-}
+// #endif
+// }
 
 void loop() {
-  readSensors();
+  // readSensors();
 
-  // radioLoop();
+  // IMULoop();
+  // barometerLoop();
+  // magnetometerLoop();
+
+  radioLoop();
 }
 
 void radioLoop() {
@@ -196,7 +183,6 @@ void radioLoop() {
 }
 
 void IMULoop() {
-#ifdef isNano
   if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) {
     // display Euler angles in degrees
     mpu.dmpGetQuaternion(&q, fifoBuffer);
@@ -206,53 +192,52 @@ void IMULoop() {
     currentRollValue = ypr[2] * 180 / M_PI;
     currentPitchValue = ypr[1] * 180 / M_PI;
   }
-#endif
 }
 
-void magnetometerLoop() {
-#ifdef isLeonardo
-  bmm.read_mag_data();
+// void magnetometerLoop() {
+// #ifdef isLeonardo
+//   bmm.read_mag_data();
 
-  bmm150_value.x = bmm.raw_mag_data.raw_datax - bmm150_value_offset.x;
-  bmm150_value.y = bmm.raw_mag_data.raw_datay - bmm150_value_offset.y;
-  bmm150_value.z = bmm.raw_mag_data.raw_dataz - bmm150_value_offset.z;
+//   bmm150_value.x = bmm.raw_mag_data.raw_datax - bmm150_value_offset.x;
+//   bmm150_value.y = bmm.raw_mag_data.raw_datay - bmm150_value_offset.y;
+//   bmm150_value.z = bmm.raw_mag_data.raw_dataz - bmm150_value_offset.z;
 
-  short heading = atan2(bmm150_value.x, bmm150_value.y);
+//   short heading = atan2(bmm150_value.x, bmm150_value.y);
 
-  if (heading < 0)
-    heading += 2 * PI;
+//   if (heading < 0)
+//     heading += 2 * PI;
 
-  if (heading > 2 * PI)
-    heading -= 2 * PI;
+//   if (heading > 2 * PI)
+//     heading -= 2 * PI;
 
-  headingDegrees = heading * 180 / M_PI;
+//   headingDegrees = heading * 180 / M_PI;
 
-  Serial.print("Heading: ");
-  Serial.println(headingDegrees);
-#endif
-}
+//   Serial.print("Heading: ");
+//   Serial.println(headingDegrees);
+// #endif
+// }
 
 void barometerLoop() {
-#ifdef isLeonardo
-  sensors_event_t temp_event, pressure_event;
+  // #ifdef isLeonardo
+  //   sensors_event_t temp_event, pressure_event;
 
-  if (dps.temperatureAvailable()) {
-    dps_temp->getEvent(&temp_event);
-    Serial.print(F("Temperature = "));
-    Serial.print(temp_event.temperature);
-    Serial.println(" °C");
-  }
+  //   if (dps.temperatureAvailable()) {
+  //     dps_temp->getEvent(&temp_event);
+  //     // Serial.print(F("Temperature = "));
+  //     // Serial.print(temp_event.temperature);
+  //     // Serial.println(" °C");
+  //   }
 
-  // Reading pressure also reads temp so don't check pressure
-  // before temp!
-  if (dps.pressureAvailable()) {
-    dps_pressure->getEvent(&pressure_event);
-    // Serial.print(F("Pressure = "));
-    // Serial.print(pressure_event.pressure);
-    // Serial.println(" hPa");
-  }
+  //   // Reading pressure also reads temp so don't check pressure
+  //   // before temp!
+  //   if (dps.pressureAvailable()) {
+  //     dps_pressure->getEvent(&pressure_event);
+  //     // Serial.print(F("Pressure = "));
+  //     // Serial.print(pressure_event.pressure);
+  //     // Serial.println(" hPa");
+  //   }
 
-#endif
+  // #endif
 }
 
 void lostRadio() {
@@ -304,16 +289,11 @@ void pitchBy(byte byDegrees) {
 }
 
 void yaw(byte angle) {
-  yawMotor.write(angle);
+  // yawMotor.write(angle);
 }
 
 void readSensors() {
-  transmitData[batteryIndex] = 0;
-
-  // IMULoop();
-
-  barometerLoop();
-  // magnetometerLoop();
+  // transmitData[batteryIndex] = 0;
 }
 
 void transmit() {
@@ -351,39 +331,39 @@ void ACS() {
   pitchBy(-correctedPitchAmount);
 }
 
-void printTransmissionData() {
-  Serial.print("Sent: \t\t");
-  for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
-    Serial.print(transmitData[i]);
-    Serial.print(" ");
-  }
-  Serial.println();
-}
+// void printTransmissionData() {
+//   Serial.print("Sent: \t\t");
+//   for (unsigned long i = 0; i < sizeof(transmitData) / sizeof(transmitData[0]); i++) {
+//     Serial.print(transmitData[i]);
+//     Serial.print(" ");
+//   }
+//   Serial.println();
+// }
 
-void printRecievedData() {
-  // Serial.print("Elapsed: ");
-  // Serial.println(elapsedTime);
+// void printRecievedData() {
+//   // Serial.print("Elapsed: ");
+//   // Serial.println(elapsedTime);
 
-  Serial.print("Throttle ");
-  Serial.println(recievedData[throttleIndex]);
+//   Serial.print("Throttle ");
+//   Serial.println(recievedData[throttleIndex]);
 
-  Serial.print("Yaw ");
-  Serial.println(recievedData[yawIndex]);
+//   Serial.print("Yaw ");
+//   Serial.println(recievedData[yawIndex]);
 
-  Serial.print("Pitch ");
-  Serial.println(recievedData[pitchIndex]);
+//   Serial.print("Pitch ");
+//   Serial.println(recievedData[pitchIndex]);
 
-  Serial.print("Roll ");
-  Serial.println(recievedData[rollIndex]);
+//   Serial.print("Roll ");
+//   Serial.println(recievedData[rollIndex]);
 
-  Serial.print("Autopilot ");
-  Serial.println(recievedData[autopilotIsOnIndex]);
+//   Serial.print("Autopilot ");
+//   Serial.println(recievedData[autopilotIsOnIndex]);
 
-  Serial.print("Pitch Bias ");
-  Serial.println(recievedData[pitchBiasIndex]);
+//   Serial.print("Pitch Bias ");
+//   Serial.println(recievedData[pitchBiasIndex]);
 
-  Serial.println();
-}
+//   Serial.println();
+// }
 
 // void printCardInfo() {
 //   if (!card.init(SPI_HALF_SPEED, sdCardPin)) {
