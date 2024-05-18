@@ -1,5 +1,28 @@
 #include <Arduino.h>
-#include <Servo.h>
+// #include <Servo.h>
+#include "Common/common.h"
+
+// SD Card
+#include "SD-Card.h"
+void setupSD();
+
+// Display
+#include "Display.h"
+int frameCount = 1;
+int overlaysCount = 1;
+void setupDisplay();
+
+// Lora
+#include <LoRa.h>
+const long frequency = 915E6;  // LoRa Frequency
+boolean runEvery(unsigned long interval);
+void setupRadio();
+void loraLoop();
+void LoRa_rxMode();
+void LoRa_txMode();
+void LoRa_sendMessage(String message);
+void onReceive(int packetSize);
+void onTxDone();
 
 // #include <Servo.h>
 // #include <printf.h>
@@ -50,7 +73,7 @@
 // Servo pitchMotor;
 // Servo yawMotor;
 
-Servo engine;
+// Servo engine; uncomment this
 
 // Sd2Card carda
 // SdVolume volume;
