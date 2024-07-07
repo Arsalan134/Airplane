@@ -89,7 +89,7 @@ void setupRadio() {
     Serial.println("LoRa init failed. Check your connections.");
     delay(200);
   }
-
+  
   Serial.println("LoRa init succeeded.");
   Serial.println();
   Serial.println("LoRa Simple Node");

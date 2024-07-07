@@ -27,9 +27,6 @@ void onReceive(int packetSize) {
     message += (char)LoRa.read();
   }
 
-  Serial.print("Node Receive: ");
-  Serial.println(message);
-
   recievedMessage = message;
 }
 
@@ -51,25 +48,25 @@ boolean runEvery(unsigned long interval) {
 }
 
 void loraLoop() {
-  if (runEvery(1000)) {
-    // try to parse packet
-    int packetSize = LoRa.parsePacket();
-    if (packetSize) {
-      // received a packet
-      Serial.print("Received packet ");
+  // if (runEvery(1000)) {
+  // try to parse packet
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {
+    // received a packet
+    Serial.print("Received packet ");
 
-      // read packet
-      while (LoRa.available()) {
-        recievedMessage = LoRa.readString();
-        Serial.print(recievedMessage);
-      }
-
-      // print RSSI of packet
-      int rssi = LoRa.packetRssi();
-      Serial.print(" with RSSI ");
-      Serial.println(rssi);
+    // read packet
+    while (LoRa.available()) {
+      recievedMessage = LoRa.readString();
+      Serial.print(recievedMessage);
     }
+
+    // print RSSI of packet
+    int rssi = LoRa.packetRssi();
+    Serial.print(" with RSSI ");
+    Serial.println(rssi);
   }
+  // }
 }
 
 // void radioConnection() {
