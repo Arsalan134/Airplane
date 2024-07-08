@@ -2,6 +2,7 @@
 #include "Common/common.h"
 
 String recievedMessage = "";
+int RSSI = 0;
 
 void LoRa_rxMode() {
   LoRa.enableInvertIQ();  // active invert I and Q signals
@@ -21,13 +22,18 @@ void LoRa_sendMessage(String message) {
 }
 
 void onReceive(int packetSize) {
+  digitalWrite(BUILTIN_LED, 1);
+
   String message = "";
 
-  while (LoRa.available()) {
+  while (LoRa.available())
     message += (char)LoRa.read();
-  }
 
   recievedMessage = message;
+
+  // int rssi = LoRa.packetRssi();
+
+  digitalWrite(BUILTIN_LED, 0);
 }
 
 void onTxDone() {
@@ -47,27 +53,29 @@ boolean runEvery(unsigned long interval) {
   return false;
 }
 
-void loraLoop() {
-  // if (runEvery(1000)) {
-  // try to parse packet
-  int packetSize = LoRa.parsePacket();
-  if (packetSize) {
-    // received a packet
-    Serial.print("Received packet ");
+// void loraLoop() {
+//   // if (runEvery(1000)) {
+//   // try to parse packet
+//   if (LoRa.parsePacket()) {
+//     // received a packet
+//     Serial.print("Received packet ");
 
-    // read packet
-    while (LoRa.available()) {
-      recievedMessage = LoRa.readString();
-      Serial.print(recievedMessage);
-    }
+//     // read packet
+//     if (LoRa.available()) {
+//       recievedMessage = LoRa.readString();
+//       Serial.print(recievedMessage);
+//     }
 
-    // print RSSI of packet
-    int rssi = LoRa.packetRssi();
-    Serial.print(" with RSSI ");
-    Serial.println(rssi);
-  }
-  // }
-}
+//     // print RSSI of packet
+//     int rssi = LoRa.packetRssi();
+//     Serial.print(" with RSSI ");
+//     Serial.println(rssi);
+
+//     LoRa.flush();
+//     Serial.println("LORA LOOP");
+//   }
+//   // }
+// }
 
 // void radioConnection() {
 //   transmitData[throttleIndex] =

@@ -18,7 +18,6 @@ void setup() {
 
   pinMode(BUILTIN_LED, OUTPUT);
 
-  // pins_arduino.h
   setupDisplay();
   // setupSD();
   setupRadio();
@@ -31,8 +30,6 @@ void loop() {
   if (remainingTimeBudget > 0) {
     // You can do some work here
     // Don't do stuff if you are below your time budget.
-
-    loraLoop();
 
     delay(remainingTimeBudget);
   }
@@ -89,7 +86,7 @@ void setupRadio() {
     Serial.println("LoRa init failed. Check your connections.");
     delay(200);
   }
-  
+
   Serial.println("LoRa init succeeded.");
   Serial.println();
   Serial.println("LoRa Simple Node");
