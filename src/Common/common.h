@@ -18,9 +18,12 @@ extern int engineRecieved;
 extern int aileronRecieved;
 extern int rudderRecieved;
 extern int elevatorsRecieved;
+extern unsigned long lastRecievedTime;
 
 #define ENGINE_PIN 4
 #define ROLL_LEFT_MOTOR_PIN 15
 #define ELEVATION_LEFT_MOTOR_PIN 13
 #define ELEVATION_RIGHT_MOTOR_PIN 2
 #define RUDDER_MOTOR_PIN 12
+
+#define timeoutInMilliSeconds 1000  // 1 second

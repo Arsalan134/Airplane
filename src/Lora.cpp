@@ -1,12 +1,14 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String recievedMessage = "e0a90el90";
+String message = "e0a90r90l90";
+String recievedMessage = "e0a90r90l90";
 
 int engineRecieved = 0;
-int aileronRecieved = 127;
-int rudderRecieved = 127;
-int elevatorsRecieved = 127;
+int aileronRecieved = 90;
+int rudderRecieved = 90;
+int elevatorsRecieved = 90;
+unsigned long lastRecievedTime = millis();
 
 int RSSI = 0;
 
@@ -30,26 +32,61 @@ void LoRa_sendMessage(String message) {
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
 
-  String message = "e0a90el90";
+  message = "";
+
+  if (packetSize == 0) {
+    Serial.println("Received empty packet");
+    return;
+  }
 
   while (LoRa.available())
     message += (char)LoRa.read();
 
   recievedMessage = message;
+  Serial.println("\tMessage: \t" + recievedMessage);
 
-  int indE = recievedMessage.indexOf('e');
-  int indA = recievedMessage.indexOf('a');
-  int indEL = recievedMessage.indexOf('el');
+  int indE = recievedMessage.indexOf('e');  // 'e' is used for engine
+  if (indE == -1) {
+    Serial.println("No engine data found in the message");
+    return;
+  }
+
+  int indA = recievedMessage.indexOf('a');  // 'a' is used for ailerons
+  if (indA == -1) {
+    Serial.println("No aileron data found in the message");
+    return;
+  }
+
+  int indR = recievedMessage.indexOf('r');  // 'r' is used for rudder
+  if (indR == -1) {
+    Serial.println("No rudder data found in the message");
+    return;
+  }
+
+  int indEL = recievedMessage.indexOf('l');  // 'l' is used for elevators
+  if (indEL == -1) {
+    Serial.println("No elevator data found in the message");
+    return;
+  }
+
+  lastRecievedTime = millis();
 
   engineRecieved = recievedMessage.substring(indE + 1, indA).toInt();
-  aileronRecieved = recievedMessage.substring(indA + 1, indEL).toInt();
+  aileronRecieved = recievedMessage.substring(indA + 1, indR).toInt();
+  rudderRecieved = recievedMessage.substring(indR + 1, indEL).toInt();
   elevatorsRecieved = recievedMessage.substring(indEL + 1).toInt();
 
-  Serial.println("Engine is" + String(engineRecieved));
-  Serial.println("Ailerons is" + String(aileronRecieved));
-  Serial.println("Elevators is" + String(elevatorsRecieved));
+  Serial.print("Engine is: " + String(engineRecieved));
+  Serial.print("\tAilerons is: " + String(aileronRecieved));
+  Serial.print("\t\tRudder is: " + String(rudderRecieved));
+  Serial.print("\tElevators is: " + String(elevatorsRecieved));
 
-  // int rssi = LoRa.packetRssi();
+  RSSI = LoRa.packetRssi();
+
+  Serial.print("\tRSSI: " + String(RSSI));
+
+  Serial.print("\tElapsed: ");
+  Serial.print(millis() - lastRecievedTime);
 
   digitalWrite(BUILTIN_LED, 0);
 }

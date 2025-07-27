@@ -10,13 +10,6 @@ void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
 
   display->drawString(0 + x, 10 + y, recievedMessage);
 
-  // display->drawString(0 + x, 10 + y, String(ps5.LStickX()));
-  // display->drawString(25 + x, 10 + y, String(ps5.RStickY()));
-
-  // display->drawString(0 + x, 20 + y, String(ps5.L2Value()));
-  // display->drawString(25 + x, 20 + y, String(ps5.R2Value()));
-
-  // Slider
   // display->drawString(0 + x, 10 + y, String(analogRead(34)));
 
   display->drawXbm(x + 0, y + 36, ps5Icon::xres, ps5Icon::yres, ps5Icon::pixels);

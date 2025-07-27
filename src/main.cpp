@@ -31,13 +31,13 @@ void setup() {
   rudderMotor.attach(RUDDER_MOTOR_PIN);
 }
 
-String defaultMessage = "e0a90el90";
+String defaultMessage = "e0a90r90l90";
 
 void loop() {
   // Display
   int remainingTimeBudget = display.update();
 
-  recievedMessage = defaultMessage;
+  // recievedMessage = defaultMessage;
 
   if (remainingTimeBudget > 0) {
     // You can do some work here
@@ -46,11 +46,35 @@ void loop() {
     delay(remainingTimeBudget);
   }
 
-  engine.write(engineRecieved);
-  rollLeftMotor.write(aileronRecieved);
+  if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
+    Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
 
-  elevationLeftMotor.write(elevatorsRecieved);
-  elevationRightMotor.write(180 - elevatorsRecieved);
+    engine.write(0);                // Turn off the engine
+    rollLeftMotor.write(90);        // Center the ailerons
+    elevationLeftMotor.write(90);   // Center the elevators
+    elevationRightMotor.write(90);  // Center the elevators
+    rudderMotor.write(90);          // Center the rudder
+
+    ACS();
+  } else {
+    // Update the motors
+    engine.write(engineRecieved);
+    rollLeftMotor.write(aileronRecieved);
+
+    elevationLeftMotor.write(elevatorsRecieved);
+    elevationRightMotor.write(180 - elevatorsRecieved);
+  }
+}
+
+void ACS() {
+  // Center the servos
+  engine.write(0);                // Turn off the engine
+  rollLeftMotor.write(90);        // Center the ailerons
+  elevationLeftMotor.write(90);   // Center the elevators
+  elevationRightMotor.write(90);  // Center the elevators
+  rudderMotor.write(90);          // Center the rudder
+
+  Serial.println("All servos centered");
 }
 
 void setupSD() {
@@ -122,7 +146,7 @@ void setupRadio() {
 // but that won't give you much time for anything else
 // run it in 160Mhz mode or just set it to 30 fps
 void setupDisplay() {
-  display.setTargetFPS(60);
+  display.setTargetFPS(30);
 
   // Customize the active and inactive symbol
   display.setActiveSymbol(activeSymbol);
