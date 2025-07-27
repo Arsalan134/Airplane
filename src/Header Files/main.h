@@ -79,6 +79,8 @@ Servo rollLeftMotor;
 Servo elevationLeftMotor;
 Servo elevationRightMotor;
 
+Servo rudderMotor;
+
 // Sd2Card carda
 // SdVolume volume;
 // SdFile root;

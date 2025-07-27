@@ -27,6 +27,8 @@ void setup() {
 
   elevationLeftMotor.attach(ELEVATION_LEFT_MOTOR_PIN);
   elevationRightMotor.attach(ELEVATION_RIGHT_MOTOR_PIN);
+
+  rudderMotor.attach(RUDDER_MOTOR_PIN);
 }
 
 String defaultMessage = "e0a90el90";

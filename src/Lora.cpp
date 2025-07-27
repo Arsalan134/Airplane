@@ -3,10 +3,10 @@
 
 String recievedMessage = "e0a90el90";
 
-int engineRecieved;
-int aileronRecieved;
-int rudderRecieved;
-int elevatorsRecieved;
+int engineRecieved = 0;
+int aileronRecieved = 127;
+int rudderRecieved = 127;
+int elevatorsRecieved = 127;
 
 int RSSI = 0;
 
