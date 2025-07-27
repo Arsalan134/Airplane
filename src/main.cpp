@@ -22,11 +22,11 @@ void setup() {
   // setupSD();
   setupRadio();
 
-  engine.attach(4, 1000, 2000);
-  rollLeftMotor.attach(15);
+  engine.attach(ENGINE_PIN, 1000, 2000);
+  rollLeftMotor.attach(ROLL_LEFT_MOTOR_PIN);
 
-  elevationLeftMotor.attach(13);
-  elevationRightMotor.attach(2);
+  elevationLeftMotor.attach(ELEVATION_LEFT_MOTOR_PIN);
+  elevationRightMotor.attach(ELEVATION_RIGHT_MOTOR_PIN);
 }
 
 String defaultMessage = "e0a90el90";
