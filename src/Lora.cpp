@@ -1,7 +1,13 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String recievedMessage = "";
+String recievedMessage = "e0a90el90";
+
+int engineRecieved;
+int aileronRecieved;
+int rudderRecieved;
+int elevatorsRecieved;
+
 int RSSI = 0;
 
 void LoRa_rxMode() {
@@ -24,12 +30,24 @@ void LoRa_sendMessage(String message) {
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
 
-  String message = "";
+  String message = "e0a90el90";
 
   while (LoRa.available())
     message += (char)LoRa.read();
 
   recievedMessage = message;
+
+  int indE = recievedMessage.indexOf('e');
+  int indA = recievedMessage.indexOf('a');
+  int indEL = recievedMessage.indexOf('el');
+
+  engineRecieved = recievedMessage.substring(indE + 1, indA).toInt();
+  aileronRecieved = recievedMessage.substring(indA + 1, indEL).toInt();
+  elevatorsRecieved = recievedMessage.substring(indEL + 1).toInt();
+
+  Serial.println("Engine is" + String(engineRecieved));
+  Serial.println("Ailerons is" + String(aileronRecieved));
+  Serial.println("Elevators is" + String(elevatorsRecieved));
 
   // int rssi = LoRa.packetRssi();
 

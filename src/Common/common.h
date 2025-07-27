@@ -13,3 +13,8 @@ extern OverlayCallback wifiOverlays[];
 extern OverlayCallback bluetoothOverlays[];
 
 extern String recievedMessage;
+
+extern int engineRecieved;
+extern int aileronRecieved;
+extern int rudderRecieved;
+extern int elevatorsRecieved;

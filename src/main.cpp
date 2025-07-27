@@ -21,11 +21,21 @@ void setup() {
   setupDisplay();
   // setupSD();
   setupRadio();
+
+  engine.attach(4, 1000, 2000);
+  rollLeftMotor.attach(15);
+
+  elevationLeftMotor.attach(13);
+  elevationRightMotor.attach(2);
 }
+
+String defaultMessage = "e0a90el90";
 
 void loop() {
   // Display
   int remainingTimeBudget = display.update();
+
+  recievedMessage = defaultMessage;
 
   if (remainingTimeBudget > 0) {
     // You can do some work here
@@ -33,6 +43,12 @@ void loop() {
 
     delay(remainingTimeBudget);
   }
+
+  engine.write(engineRecieved);
+  rollLeftMotor.write(aileronRecieved);
+
+  elevationLeftMotor.write(elevatorsRecieved);
+  elevationRightMotor.write(180 - elevatorsRecieved);
 }
 
 void setupSD() {
@@ -137,15 +153,3 @@ void setupDisplay() {
   ui.setTextAlignment(TEXT_ALIGN_LEFT);
   ui.setFont(ArialMT_Plain_10);
 }
-
-// void setup() {
-//   Serial.begin(115200);
-//   engine.attach(motorPin, 1000, 2000);
-// }
-
-// void loop() {
-//   int value = map(analogRead(A0), 0, 1024, 0, 180);
-
-//   Serial.println(value);
-//   engine.write(value);
-// }

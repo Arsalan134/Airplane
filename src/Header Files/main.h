@@ -1,5 +1,5 @@
 #include <Arduino.h>
-// #include <Servo.h>
+#include <ESP32Servo.h>
 #include "Common/common.h"
 
 // SD Card
@@ -69,11 +69,15 @@ void onTxDone();
 // RF24 radio(12, 8);
 
 // Servo rollLeftMotor;
-// Servo rollRightMotor;
+
 // Servo pitchMotor;
 // Servo yawMotor;
 
-// Servo engine; uncomment this
+Servo engine;
+Servo rollLeftMotor;
+
+Servo elevationLeftMotor;
+Servo elevationRightMotor;
 
 // Sd2Card carda
 // SdVolume volume;
@@ -106,7 +110,7 @@ boolean timeout = false;
 // #define pitchServoPin 5
 // #define rollServoLeftPin 6
 // #define buzzerPin 7
-#define motorPin 10
+#define motorPin 4
 // #define rollServoRightPin 10
 // #define sdCardPin 11
 // #define yawServoPin 13
