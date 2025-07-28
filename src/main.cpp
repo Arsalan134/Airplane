@@ -24,6 +24,7 @@ void setup() {
 
   engine.attach(ENGINE_PIN, 1000, 2000);
   rollLeftMotor.attach(ROLL_LEFT_MOTOR_PIN);
+  // rollRightMotor.attach(ROLL_RIGHT_MOTOR_PIN);
 
   elevationLeftMotor.attach(ELEVATION_LEFT_MOTOR_PIN);
   elevationRightMotor.attach(ELEVATION_RIGHT_MOTOR_PIN);
@@ -49,8 +50,9 @@ void loop() {
   if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
     Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
 
-    engine.write(0);                // Turn off the engine
-    rollLeftMotor.write(90);        // Center the ailerons
+    engine.write(0);          // Turn off the engine
+    rollLeftMotor.write(90);  // Center the ailerons
+    // rollRightMotor.write(90);       // Center the ailerons
     elevationLeftMotor.write(90);   // Center the elevators
     elevationRightMotor.write(90);  // Center the elevators
     rudderMotor.write(90);          // Center the rudder
@@ -60,16 +62,19 @@ void loop() {
     // Update the motors
     engine.write(engineRecieved);
     rollLeftMotor.write(aileronRecieved);
+    // rollRightMotor.write(180 - aileronRecieved);
 
     elevationLeftMotor.write(elevatorsRecieved);
     elevationRightMotor.write(180 - elevatorsRecieved);
+    rudderMotor.write(map(rudderRecieved, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom));
   }
 }
 
 void ACS() {
   // Center the servos
-  engine.write(0);                // Turn off the engine
-  rollLeftMotor.write(90);        // Center the ailerons
+  engine.write(0);          // Turn off the engine
+  rollLeftMotor.write(90);  // Center the ailerons
+  // rollRightMotor.write(90);       // Center the ailerons
   elevationLeftMotor.write(90);   // Center the elevators
   elevationRightMotor.write(90);  // Center the elevators
   rudderMotor.write(90);          // Center the rudder

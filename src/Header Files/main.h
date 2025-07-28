@@ -75,6 +75,7 @@ void onTxDone();
 
 Servo engine;
 Servo rollLeftMotor;
+Servo rollRightMotor;
 
 Servo elevationLeftMotor;
 Servo elevationRightMotor;
