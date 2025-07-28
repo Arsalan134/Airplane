@@ -32,13 +32,9 @@ void setup() {
   rudderMotor.attach(RUDDER_MOTOR_PIN);
 }
 
-String defaultMessage = "e0a90r90l90";
-
 void loop() {
   // Display
   int remainingTimeBudget = display.update();
-
-  // recievedMessage = defaultMessage;
 
   if (remainingTimeBudget > 0) {
     // You can do some work here
@@ -58,6 +54,7 @@ void loop() {
     rudderMotor.write(90);          // Center the rudder
 
     ACS();
+    delay(20);
   } else {
     // Update the motors
     engine.write(engineRecieved);

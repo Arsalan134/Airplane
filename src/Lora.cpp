@@ -1,8 +1,8 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String message = "e0a90r90l90";
-String recievedMessage = "e0a90r90l90";
+String message = "e0a90r90l90#35";
+String recievedMessage = "e0a90r90l90#35";
 
 int engineRecieved = 0;
 int aileronRecieved = 90;
@@ -29,6 +29,14 @@ void LoRa_sendMessage(String message) {
   LoRa.endPacket(true);  // finish packet and send it
 }
 
+byte simple_checksum(const byte* data, size_t len) {
+  byte sum = 0;
+  for (size_t i = 0; i < len; i++) {
+    sum ^= data[i];
+  }
+  return sum;
+}
+
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
 
@@ -44,6 +52,31 @@ void onReceive(int packetSize) {
 
   recievedMessage = message;
   Serial.println("\tMessage: \t" + recievedMessage);
+
+  if (recievedMessage.length() < 10) {
+    Serial.println("Received message is too short");
+    Serial.println("Expected at least 10 characters, got: " + String(recievedMessage.length()));
+    return;
+  }
+
+  int indHashtag = recievedMessage.indexOf('#');
+  if (indHashtag == -1) {
+    Serial.println("No end of message found");
+    return;
+  }
+
+  // Check if the message is valid until the #
+  String content = recievedMessage.substring(0, recievedMessage.indexOf('#'));
+
+  byte recievedChecksum = recievedMessage.substring(indHashtag + 1).toInt();
+  byte calculatedChecksum = simple_checksum((const byte*)content.c_str(), content.length());
+
+  if (calculatedChecksum != recievedChecksum) {
+    Serial.println("Invalid checksum: " + String(calculatedChecksum));
+    Serial.println("Expected: " + String(recievedChecksum));
+    Serial.println("Message: " + recievedMessage);
+    return;
+  }
 
   int indE = recievedMessage.indexOf('e');  // 'e' is used for engine
   if (indE == -1) {

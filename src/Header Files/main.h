@@ -18,6 +18,7 @@ const long frequency = 915E6;  // LoRa Frequency
 boolean runEvery(unsigned long interval);
 void setupRadio();
 void loraLoop();
+uint8_t simple_checksum(const uint8_t* data, size_t len);
 void LoRa_rxMode();
 void LoRa_txMode();
 void LoRa_sendMessage(String message);
