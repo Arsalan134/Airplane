@@ -22,10 +22,10 @@ Airplane& Airplane::getInstance() {
 // Private constructor
 Airplane::Airplane() {
   // Initialize control surfaces to neutral positions
+  engine = 0;
   aileron = 90;
   rudder = 90;
   elevators = 90;
-  engine = 0;
 
   // Initialize trim
   trim = 90;
@@ -42,9 +42,7 @@ Airplane::Airplane() {
   currentThrottle = 0;
 
   // Initialize flight modes
-  stabilityModeEnabled = true;
-  acrobaticModeEnabled = false;
-  landingModeEnabled = false;
+  currentFlightMode = FlightMode::STABILITY;
 }
 
 // =============================================================================
@@ -102,14 +100,23 @@ float Airplane::getThrottle() const {
   return currentThrottle;
 }
 
-String Airplane::getFlightMode() const {
-  if (landingModeEnabled)
-    return "Landing";
-  if (acrobaticModeEnabled)
-    return "Acrobatic";
-  if (stabilityModeEnabled)
-    return "Stability";
-  return "Manual";
+FlightMode Airplane::getFlightMode() const {
+  return currentFlightMode;
+}
+
+String Airplane::getFlightModeString() const {
+  switch (currentFlightMode) {
+    case FlightMode::LANDING:
+      return "Landing";
+    case FlightMode::ACROBATIC:
+      return "Acrobatic";
+    case FlightMode::STABILITY:
+      return "Stability";
+    case FlightMode::MANUAL:
+      return "Manual";
+    default:
+      return "Unknown";
+  }
 }
 
 // Complex getters
@@ -239,36 +246,10 @@ void Airplane::setConnectionStatus(bool active) {
 // FLIGHT MODE SETTERS
 // =============================================================================
 
-void Airplane::setStabilityMode(bool enabled) {
-  stabilityModeEnabled = enabled;
-  if (enabled) {
-    acrobaticModeEnabled = false;
-    Serial.println("Stability mode enabled");
-  } else {
-    Serial.println("Stability mode disabled");
-  }
-}
-
-void Airplane::setAcrobaticMode(bool enabled) {
-  acrobaticModeEnabled = enabled;
-  if (enabled) {
-    stabilityModeEnabled = false;
-    landingModeEnabled = false;
-    Serial.println("Acrobatic mode enabled - Full control");
-  } else {
-    Serial.println("Acrobatic mode disabled");
-  }
-}
-
-void Airplane::setLandingMode(bool enabled) {
-  landingModeEnabled = enabled;
-  if (enabled) {
-    stabilityModeEnabled = true;
-    acrobaticModeEnabled = false;
-    Serial.println("Landing mode enabled");
-  } else {
-    Serial.println("Landing mode disabled");
-  }
+void Airplane::setFlightMode(FlightMode mode) {
+  currentFlightMode = mode;
+  Serial.print("Flight mode set to: ");
+  Serial.println(getFlightModeString());
 }
 
 // =============================================================================
@@ -307,7 +288,7 @@ void Airplane::performTurn(float bankAngle, float rudderInput) {
 }
 
 void Airplane::performBarrelRoll(int direction) {
-  if (!acrobaticModeEnabled) {
+  if (currentFlightMode != FlightMode::ACROBATIC) {
     Serial.println("Acrobatic mode required for barrel roll");
     return;
   }
@@ -319,18 +300,12 @@ void Airplane::performBarrelRoll(int direction) {
 }
 
 void Airplane::performLanding(float glidePath) {
-  setLandingMode(true);
+  setFlightMode(FlightMode::LANDING);
   setPitchAngle(glidePath);
   setThrottle(25);  // Low throttle for landing
   Serial.print("Performing landing approach at ");
   Serial.print(glidePath);
   Serial.println(" degree glide path");
-}
-
-void Airplane::performTakeoff(float throttle) {
-  setPitchAngle(15.0);  // Takeoff angle
-  setThrottle(throttle);
-  Serial.println("Performing takeoff");
 }
 
 // =============================================================================
@@ -441,9 +416,7 @@ void Airplane::resetToSafeDefaults() {
   currentThrottle = 0;
 
   // Reset to safe flight mode
-  stabilityModeEnabled = true;
-  acrobaticModeEnabled = false;
-  landingModeEnabled = false;
+  currentFlightMode = FlightMode::STABILITY;
 
   Serial.println("Reset to safe defaults");
 }

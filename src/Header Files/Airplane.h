@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };
+
 class Airplane {
  private:
   // Singleton instance
@@ -40,10 +42,8 @@ class Airplane {
   float currentYawAngle;
   byte currentThrottle;
 
-  // Flight modes
-  bool stabilityModeEnabled;
-  bool acrobaticModeEnabled;
-  bool landingModeEnabled;
+  // Flight mode
+  FlightMode currentFlightMode;
 
   // Private helper functions
   void validateControlSurfaces();
@@ -90,12 +90,9 @@ class Airplane {
   void performTurn(float bankAngle, float rudderInput = 0);
   void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
   void performLanding(float glidePath = -3.0);
-  void performTakeoff(float throttle = 90);
 
   // Flight mode functions
-  void setStabilityMode(bool enabled);  // Auto-leveling mode
-  void setAcrobaticMode(bool enabled);  // Full control mode
-  void setLandingMode(bool enabled);    // Landing assistance mode
+  void setFlightMode(FlightMode mode);  // Set flight mode
 
   // Getters
   byte getAileron() const;
@@ -112,7 +109,8 @@ class Airplane {
   float getPitchAngle() const;
   float getYawAngle() const;
   float getThrottle() const;
-  String getFlightMode() const;
+  FlightMode getFlightMode() const;
+  String getFlightModeString() const;
 
   // Public utility functions
   void initialize();
