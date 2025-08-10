@@ -111,9 +111,9 @@ class Airplane {
   byte getAileron() const;
   byte getRudder() const;
   byte getElevators() const;
-  int getEngine() const;
+  byte getEngine() const;
   byte getTrim() const;
-  int getBatteryLevel() const;
+  byte getBatteryLevel() const;
   bool isConnectionActive() const;
   unsigned long getLastReceivedTime() const;
 

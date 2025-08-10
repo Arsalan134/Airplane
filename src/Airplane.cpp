@@ -56,7 +56,7 @@ byte Airplane::getElevators() const {
   return targetElevators;
 }
 
-int Airplane::getEngine() const {
+byte Airplane::getEngine() const {
   return targetEngine;
 }
 
@@ -65,7 +65,7 @@ byte Airplane::getTrim() const {
 }
 
 // Status getters
-int Airplane::getBatteryLevel() const {
+byte Airplane::getBatteryLevel() const {
   return batteryLevel;
 }
 
