@@ -58,7 +58,7 @@ void loop() {
   } else {
     // Update the motors
     engine.write(engineRecieved);
-    rollLeftMotor.write(aileronRecieved);
+    rollLeftMotor.write(180 - aileronRecieved);
     // rollRightMotor.write(180 - aileronRecieved);
 
     elevationLeftMotor.write(elevatorsRecieved);

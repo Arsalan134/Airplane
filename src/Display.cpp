@@ -8,13 +8,17 @@ void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
 
-  display->drawString(0 + x, 10 + y, recievedMessage);
+  display->drawString(0 + x, 10 + y, String(aileronRecieved));
+  display->drawString(25 + x, 10 + y, String(elevatorsRecieved));
+  display->drawString(50 + x, 10 + y, String(rudderRecieved));
+
+  display->drawString(50 + x, 20 + y, String((int)(engineRecieved / 1.8)) + "% Engine");
 
   // display->drawString(0 + x, 10 + y, String(analogRead(34)));
 
   display->drawXbm(x + 0, y + 36, ps5Icon::xres, ps5Icon::yres, ps5Icon::pixels);
 
-  display->drawString(55 + x, 36 + y, "Arsalan Iravani");
+  display->drawString(50 + x, 52 + y, "Arsalan Iravani");
 }
 
 // Demonstrates the 3 included default sizes. The fonts come from SSD1306Fonts.h file
@@ -54,8 +58,7 @@ void drawFrame3(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
 void drawFrame4(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
-  display->drawStringMaxWidth(0 + x, 10 + y, 128,
-                              "Lorem ipsum\n dolor sit amet, consetetur sadipscing elitr, ");
+  display->drawStringMaxWidth(0 + x, 10 + y, 128, "Lorem ipsum\n dolor sit amet, consetetur sadipscing elitr, ");
 }
 
 void drawFrame5(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y) {}
