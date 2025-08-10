@@ -2,6 +2,7 @@
 #define AIRPLANE_H
 
 #include <Arduino.h>
+#include <ESP32Servo.h>
 
 enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };
 
@@ -13,24 +14,43 @@ class Airplane {
   // Private constructor for singleton
   Airplane();
 
+  // Servo initialization
+  void initializeServos();
+
   // Delete copy constructor and assignment operator
   Airplane(const Airplane&) = delete;
   Airplane& operator=(const Airplane&) = delete;
 
   // Flight control surfaces
-  byte aileron;
-  byte rudder;
-  byte elevators;
-  int engine;
+  byte targetRoll;
+  byte targetRudder;
+  byte targetElevators;
+  byte targetEngine;
+
+  // Servo objects
+  Servo engineServo;
+  Servo rollLeftMotorServo;
+  Servo elevationLeftMotorServo;
+  Servo elevationRightMotorServo;
+  Servo rudderMotorServo;
+
+// Servo pin definitions
+#define ENGINE_PIN 4
+#define ROLL_LEFT_MOTOR_PIN 12
+#define ELEVATION_LEFT_MOTOR_PIN 13
+#define ELEVATION_RIGHT_MOTOR_PIN 2
+#define RUDDER_MOTOR_PIN 15
+
+#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
 
   // Trim settings
   byte trim;
-  static const byte trimStep = 2;
+#define TRIM_STEP 2
 
   // Battery monitoring
   int batteryLevel;
-  static const int minAnalogReadFromBattery = 750;
-  static const int maxAnalogReadFromBattery = 1000;
+#define MIN_ANALOG_READ_FROM_BATTERY 750
+#define MAX_ANALOG_READ_FROM_BATTERY 1000
 
   // Safety and status
   unsigned long lastReceivedTime;
@@ -40,31 +60,27 @@ class Airplane {
   float currentRollAngle;
   float currentPitchAngle;
   float currentYawAngle;
-  byte currentThrottle;
 
   // Flight mode
   FlightMode currentFlightMode;
 
   // Private helper functions
-  void validateControlSurfaces();
   void updateBatteryLevel();
   void checkConnectionTimeout();
   void applyTrimToControls();
   bool isValidControlValue(byte value);
-  void resetToSafeDefaults();
   void logControlChanges();
-  byte mapAngleToServo(float angle);
-  float constrainAngle(float angle, float minAngle, float maxAngle);
+  // byte mapAngleToServo(float angle);
+  void writeToServos();
 
  public:
   // Singleton instance getter
   static Airplane& getInstance();
 
   // Setters for flight controls
-  void setAileron(byte value);
+  void setThrottle(byte value);  // Engine throttle 0-100% | 0 - 180
   void setRudder(byte value);
   void setElevators(byte value);
-  void setEngine(int value);
 
   // Setter for trim
   void setTrim(byte value);
@@ -72,23 +88,20 @@ class Airplane {
   void adjustTrimDown();
 
   // Safety setters
+  void resetToSafeDefaults();
   void updateLastReceivedTime();
   void setConnectionStatus(bool active);
 
   // High-level flight control functions
-  void setRollAngle(float degrees);    // Roll left (-) or right (+)
-  void setBank(float degrees);         // Banking maneuver (alias for roll)
-  void setPitchAngle(float degrees);   // Pitch up (+) or down (-)
-  void setAttackAngle(float degrees);  // Set angle of attack
-  void setYawAngle(float degrees);     // Yaw left (-) or right (+)
-  void setThrottle(float percentage);  // Engine throttle 0-100%
+  void setAilerons(byte value);       // Set both ailerons
+  void setRollAngle(float degrees);   // Roll left (-) or right (+)
+  void setPitchAngle(float degrees);  // Pitch up (+) or down (-)
+  void setYawAngle(float degrees);    // Yaw left (-) or right (+)
 
   // Combined maneuver functions
   void performLevel();  // Level flight (all controls neutral)
-  void performClimb(float angle, float throttle = 75);
-  void performDescent(float angle, float throttle = 40);
-  void performTurn(float bankAngle, float rudderInput = 0);
-  void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
+  // void performTurn(float bankAngle, float rudderInput = 0);
+  // void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
   void performLanding(float glidePath = -3.0);
 
   // Flight mode functions

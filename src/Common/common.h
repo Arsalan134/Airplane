@@ -29,5 +29,3 @@ extern unsigned long lastRecievedTime;
 #define RUDDER_MOTOR_PIN 15
 
 #define timeoutInMilliSeconds 1000  // 1 second
-
-#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right

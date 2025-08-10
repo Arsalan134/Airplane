@@ -25,6 +25,13 @@ void LoRa_sendMessage(String message);
 void onReceive(int packetSize);
 void onTxDone();
 
+boolean timeout = false;
+
+/** @brief
+ * Active Control System
+ */
+void ACS();
+
 // #include <Servo.h>
 // #include <printf.h>
 // #include "I2Cdev.h"
@@ -74,33 +81,9 @@ void onTxDone();
 // Servo pitchMotor;
 // Servo yawMotor;
 
-Servo engine;
-Servo rollLeftMotor;
-// Servo rollRightMotor;
-
-Servo elevationLeftMotor;
-Servo elevationRightMotor;
-
-Servo rudderMotor;
-
 // Sd2Card carda
 // SdVolume volume;
 // SdFile root;
-
-boolean timeout = false;
-
-// byte addresses[2][6] = {"1Node", "2Node"};
-
-// byte transmitData[1];
-// byte recievedData[7];
-
-// unsigned long lastRecievedTime = 0;
-
-// #define timeoutInMilliSeconds 500
-
-// Inertial Measurment Unit data
-// short currentRollValue = 0;
-// short currentPitchValue = 0;
 
 // // Used by IMU to correct airplane
 // short correctedRollAmount = 0;
@@ -108,30 +91,6 @@ boolean timeout = false;
 
 // #define multiplierRollACS 3.0
 // #define multiplierPitchACS 3.0
-
-// #define INTERRUPT_PIN 2
-
-// #define pitchServoPin 5
-// #define rollServoLeftPin 6
-// #define buzzerPin 7
-#define motorPin 4
-// #define rollServoRightPin 10
-// #define sdCardPin 11
-// #define yawServoPin 13
-
-// Indices in recieve payload
-// #define rollIndex 0
-// #define pitchIndex 1
-// #define yawIndex 2
-// #define throttleIndex 3
-// #define autopilotIsOnIndex 4
-// #define pitchBiasIndex 5
-// #define calibrateIndex 6
-
-// Indices in transmit payload
-// #define batteryIndex 0
-
-// #define delayTime 5
 
 // #define degreesOfFreedomAilerons 90
 
@@ -141,38 +100,33 @@ boolean timeout = false;
 // float pitchBias = 0;
 
 // Setup
-void calibrate();
-void imuSetup();
-void radioSetup();
-void servoSetup();
-void magnetometerSetup();
-void barometerSetup();
+// void calibrate();
+// void imuSetup();
+// void radioSetup();
+// void servoSetup();
+// void magnetometerSetup();
+// void barometerSetup();
 
 // Loop
-void IMULoop();
-void magnetometerLoop();
-void barometerLoop();
+// void IMULoop();
+// void magnetometerLoop();
+// void barometerLoop();
 
 // Radio
-void transmit();
-void radioLoop();
-void printTransmissionData();
-void printRecievedData();
+// void transmit();
+// void radioLoop();
+// void printTransmissionData();
+// void printRecievedData();
 
-void readSensors();
-void makeStuffWithRecievedData();
+// void readSensors();
+// void makeStuffWithRecievedData();
 
 /** @brief
  * Reset all values to default values
  * Throttle down to 0
  * Servos to center position
  */
-void resetAirplaneToDefaults();
-
-/** @brief
- * Active Control System
- */
-void ACS();
+// void resetAirplaneToDefaults();
 
 /**
  * @brief
@@ -181,17 +135,17 @@ void ACS();
  * @param byDegrees
  * Degrees
  */
-void roll(byte degrees);
-void rollBy(byte byDegrees);
+// void roll(byte degrees);
+// void rollBy(byte byDegrees);
 
-void pitch(byte degrees);
-void pitchBy(byte byDegrees);
+// void pitch(byte degrees);
+// void pitchBy(byte byDegrees);
 
-void yaw(byte byAmount);
+// void yaw(byte byAmount);
 
-void lostRadio();
+// void lostRadio();
 
-void engineOff();
+// void engineOff();
 
 // void saveToFile(File file);
 // void setupSDCard();

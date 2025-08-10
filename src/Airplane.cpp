@@ -22,10 +22,10 @@ Airplane& Airplane::getInstance() {
 // Private constructor
 Airplane::Airplane() {
   // Initialize control surfaces to neutral positions
-  engine = 0;
-  aileron = 90;
-  rudder = 90;
-  elevators = 90;
+  targetEngine = 0;
+  targetRoll = 90;
+  targetRudder = 90;
+  targetElevators = 90;
 
   // Initialize trim
   trim = 90;
@@ -34,12 +34,6 @@ Airplane::Airplane() {
   lastReceivedTime = millis();
   connectionActive = false;
   batteryLevel = 0;
-
-  // Initialize high-level flight parameters
-  currentRollAngle = 0.0;
-  currentPitchAngle = 0.0;
-  currentYawAngle = 0.0;
-  currentThrottle = 0;
 
   // Initialize flight modes
   currentFlightMode = FlightMode::STABILITY;
@@ -51,19 +45,19 @@ Airplane::Airplane() {
 
 // Basic control getters
 byte Airplane::getAileron() const {
-  return aileron;
+  return targetRoll;
 }
 
 byte Airplane::getRudder() const {
-  return rudder;
+  return targetRudder;
 }
 
 byte Airplane::getElevators() const {
-  return elevators;
+  return targetElevators;
 }
 
 int Airplane::getEngine() const {
-  return engine;
+  return targetEngine;
 }
 
 byte Airplane::getTrim() const {
@@ -97,7 +91,7 @@ float Airplane::getYawAngle() const {
 }
 
 float Airplane::getThrottle() const {
-  return currentThrottle;
+  return targetEngine;
 }
 
 FlightMode Airplane::getFlightMode() const {
@@ -126,10 +120,10 @@ bool Airplane::isControlInputValid() {
 
 String Airplane::getStatusString() {
   String status = "Airplane Status:\n";
-  status += "Engine: " + String(engine) + "\n";
-  status += "Aileron: " + String(aileron) + "\n";
-  status += "Rudder: " + String(rudder) + "\n";
-  status += "Elevators: " + String(elevators) + "\n";
+  status += "Engine: " + String(targetEngine) + "\n";
+  status += "Aileron: " + String(targetRoll) + "\n";
+  status += "Rudder: " + String(targetRudder) + "\n";
+  status += "Elevators: " + String(targetElevators) + "\n";
   status += "Trim: " + String(trim) + "\n";
   status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
   status += "Battery: " + String(batteryLevel) + "%";
@@ -140,31 +134,31 @@ String Airplane::getStatusString() {
 // BASIC SETTERS (LOW-LEVEL CONTROL)
 // =============================================================================
 
-void Airplane::setAileron(byte value) {
+void Airplane::setElevators(byte value) {
   if (isValidControlValue(value)) {
-    aileron = value;
-    logControlChanges();
+    targetElevators = value;
+    writeToServos();
+  }
+}
+
+void Airplane::setAilerons(byte value) {
+  if (isValidControlValue(value)) {
+    targetRoll = value;
+    writeToServos();
   }
 }
 
 void Airplane::setRudder(byte value) {
   if (isValidControlValue(value)) {
-    rudder = value;
-    logControlChanges();
+    targetRudder = map(value, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom);
+    writeToServos();
   }
 }
 
-void Airplane::setElevators(byte value) {
+void Airplane::setThrottle(byte value) {
   if (isValidControlValue(value)) {
-    elevators = value;
-    logControlChanges();
-  }
-}
-
-void Airplane::setEngine(int value) {
-  if (value >= 0 && value <= 255) {
-    engine = value;
-    logControlChanges();
+    targetEngine = value;
+    writeToServos();
   }
 }
 
@@ -176,15 +170,15 @@ void Airplane::setTrim(byte value) {
 }
 
 void Airplane::adjustTrimUp() {
-  if (trim + trimStep <= 180) {
-    trim += trimStep;
+  if (trim + TRIM_STEP <= 180) {
+    trim += TRIM_STEP;
     applyTrimToControls();
   }
 }
 
 void Airplane::adjustTrimDown() {
-  if (trim - trimStep >= 0) {
-    trim -= trimStep;
+  if (trim - TRIM_STEP >= 0) {
+    trim -= TRIM_STEP;
     applyTrimToControls();
   }
 }
@@ -193,36 +187,22 @@ void Airplane::adjustTrimDown() {
 // HIGH-LEVEL SETTERS (FLIGHT CONTROL)
 // =============================================================================
 
+// TODO:- Need to rethink this part and degrees
 void Airplane::setRollAngle(float degrees) {
-  currentRollAngle = constrainAngle(degrees, -45.0, 45.0);
-  aileron = mapAngleToServo(currentRollAngle);
+  // targetAileron = constrainAngle(degrees, -45, 45);
+  writeToServos();
   logControlChanges();
-}
-
-void Airplane::setBank(float degrees) {
-  setRollAngle(degrees);  // Banking is the same as roll
 }
 
 void Airplane::setPitchAngle(float degrees) {
-  currentPitchAngle = constrainAngle(degrees, -30.0, 30.0);
-  elevators = mapAngleToServo(-currentPitchAngle);  // Inverted for elevator control
+  // targetElevators = constrainAngle(degrees, 0, 180);
+  writeToServos();
   logControlChanges();
-}
-
-void Airplane::setAttackAngle(float degrees) {
-  setPitchAngle(degrees);  // Angle of attack is controlled by pitch
 }
 
 void Airplane::setYawAngle(float degrees) {
-  currentYawAngle = constrainAngle(degrees, -30.0, 30.0);
-  rudder = mapAngleToServo(currentYawAngle);
-  logControlChanges();
-}
-
-void Airplane::setThrottle(float percentage) {
-  percentage = constrain(percentage, 0.0, 100.0);
-  currentThrottle = percentage;
-  engine = map(percentage, 0, 100, 0, 255);
+  // targetRudder = constrainAngle(degrees, 0, 180);
+  writeToServos();
   logControlChanges();
 }
 
@@ -237,9 +217,6 @@ void Airplane::updateLastReceivedTime() {
 
 void Airplane::setConnectionStatus(bool active) {
   connectionActive = active;
-  if (!active) {
-    emergencyShutdown();
-  }
 }
 
 // =============================================================================
@@ -248,8 +225,7 @@ void Airplane::setConnectionStatus(bool active) {
 
 void Airplane::setFlightMode(FlightMode mode) {
   currentFlightMode = mode;
-  Serial.print("Flight mode set to: ");
-  Serial.println(getFlightModeString());
+  Serial.println("Flight mode set to: " + getFlightModeString());
 }
 
 // =============================================================================
@@ -261,42 +237,6 @@ void Airplane::performLevel() {
   setPitchAngle(0);
   setYawAngle(0);
   Serial.println("Performing level flight");
-}
-
-void Airplane::performClimb(float angle, float throttle) {
-  setPitchAngle(abs(angle));  // Ensure positive angle for climb
-  setThrottle(throttle);
-  Serial.print("Performing climb at ");
-  Serial.print(angle);
-  Serial.println(" degrees");
-}
-
-void Airplane::performDescent(float angle, float throttle) {
-  setPitchAngle(-abs(angle));  // Ensure negative angle for descent
-  setThrottle(throttle);
-  Serial.print("Performing descent at ");
-  Serial.print(angle);
-  Serial.println(" degrees");
-}
-
-void Airplane::performTurn(float bankAngle, float rudderInput) {
-  setRollAngle(bankAngle);
-  setYawAngle(rudderInput);
-  Serial.print("Performing turn with ");
-  Serial.print(bankAngle);
-  Serial.println(" degree bank");
-}
-
-void Airplane::performBarrelRoll(int direction) {
-  if (currentFlightMode != FlightMode::ACROBATIC) {
-    Serial.println("Acrobatic mode required for barrel roll");
-    return;
-  }
-
-  float rollDirection = (direction > 0) ? 45.0 : -45.0;
-  setRollAngle(rollDirection);
-  Serial.print("Performing barrel roll ");
-  Serial.println(direction > 0 ? "right" : "left");
 }
 
 void Airplane::performLanding(float glidePath) {
@@ -313,56 +253,31 @@ void Airplane::performLanding(float glidePath) {
 // =============================================================================
 
 void Airplane::initialize() {
+  initializeServos();
   resetToSafeDefaults();
   updateBatteryLevel();
   Serial.println("Airplane initialized");
 }
 
+void Airplane::initializeServos() {
+  engineServo.attach(ENGINE_PIN, 1000, 2000);
+  rollLeftMotorServo.attach(ROLL_LEFT_MOTOR_PIN);
+  elevationLeftMotorServo.attach(ELEVATION_LEFT_MOTOR_PIN);
+  elevationRightMotorServo.attach(ELEVATION_RIGHT_MOTOR_PIN);
+  rudderMotorServo.attach(RUDDER_MOTOR_PIN);
+
+  Serial.println("Servos initialized");
+}
+
 void Airplane::update() {
   checkConnectionTimeout();
   updateBatteryLevel();
-  validateControlSurfaces();
 }
 
 void Airplane::emergencyShutdown() {
-  engine = 0;
-  aileron = 90;
-  rudder = 90;
-  elevators = 90;
-  currentThrottle = 0;
-  currentRollAngle = 0;
-  currentPitchAngle = 0;
-  currentYawAngle = 0;
+  resetToSafeDefaults();  // Center all controls
   Serial.println("Emergency shutdown executed");
-}
-
-// =============================================================================
-// PRIVATE HELPER FUNCTIONS
-// =============================================================================
-
-void Airplane::validateControlSurfaces() {
-  bool changed = false;
-
-  if (!isValidControlValue(aileron)) {
-    aileron = 90;
-    changed = true;
-  }
-  if (!isValidControlValue(rudder)) {
-    rudder = 90;
-    changed = true;
-  }
-  if (!isValidControlValue(elevators)) {
-    elevators = 90;
-    changed = true;
-  }
-  if (engine < 0 || engine > 255) {
-    engine = 0;
-    changed = true;
-  }
-
-  if (changed) {
-    Serial.println("Control surfaces validated and corrected");
-  }
+  delay(100);
 }
 
 void Airplane::updateBatteryLevel() {
@@ -392,9 +307,9 @@ void Airplane::checkConnectionTimeout() {
 
 void Airplane::applyTrimToControls() {
   // Apply trim adjustment to elevators (common for pitch trim)
-  int trimmedElevators = elevators + (trim - 90);
+  int trimmedElevators = targetElevators + (trim - 90);
   if (trimmedElevators >= 0 && trimmedElevators <= 180) {
-    elevators = trimmedElevators;
+    targetElevators = trimmedElevators;
   }
 }
 
@@ -403,49 +318,50 @@ bool Airplane::isValidControlValue(byte value) {
 }
 
 void Airplane::resetToSafeDefaults() {
-  aileron = 90;
-  rudder = 90;
-  elevators = 90;
-  engine = 0;
-  trim = 90;
+  targetEngine = 0;
 
-  // Reset high-level parameters
-  currentRollAngle = 0.0;
-  currentPitchAngle = 0.0;
-  currentYawAngle = 0.0;
-  currentThrottle = 0;
+  targetRoll = 90;
+  targetRudder = 90;
+  targetElevators = 90;
+  trim = 90;
 
   // Reset to safe flight mode
   currentFlightMode = FlightMode::STABILITY;
 
-  Serial.println("Reset to safe defaults");
+  writeToServos();
+}
+
+// byte Airplane::mapAngleToServo(float angle) {
+//   // Map angle (-45 to +45 degrees) to servo range (0 to 180)
+//   // Center position is 90 degrees
+//   int servoValue = 90 + (angle * 2);  // Scale angle to servo range
+//   return constrain(servoValue, 0, 180);
+// }
+
+void Airplane::writeToServos() {
+  engineServo.write(targetEngine);
+  rollLeftMotorServo.write(targetRoll);
+  elevationLeftMotorServo.write(targetElevators);
+  elevationRightMotorServo.write(180 - targetElevators);  // Right elevator inverted
+  rudderMotorServo.write(targetRudder);
+
+  logControlChanges();
 }
 
 void Airplane::logControlChanges() {
   // Log control changes for debugging
-  Serial.print("Controls - A:");
-  Serial.print(aileron);
-  Serial.print(" R:");
-  Serial.print(rudder);
-  Serial.print(" E:");
-  Serial.print(elevators);
-  Serial.print(" Engine:");
-  Serial.print(engine);
-  Serial.print(" Roll:");
-  Serial.print(currentRollAngle);
-  Serial.print(" Pitch:");
-  Serial.print(currentPitchAngle);
-  Serial.print(" Yaw:");
-  Serial.println(currentYawAngle);
-}
-
-byte Airplane::mapAngleToServo(float angle) {
-  // Map angle (-45 to +45 degrees) to servo range (0 to 180)
-  // Center position is 90 degrees
-  int servoValue = 90 + (angle * 2);  // Scale angle to servo range
-  return constrain(servoValue, 0, 180);
-}
-
-float Airplane::constrainAngle(float angle, float minAngle, float maxAngle) {
-  return constrain(angle, minAngle, maxAngle);
+  // Serial.print("Controls - A:");
+  // Serial.print(targetRoll);
+  // Serial.print(" R:");
+  // Serial.print(targetRudder);
+  // Serial.print(" E:");
+  // Serial.print(targetElevators);
+  // Serial.print(" Engine:");
+  // Serial.print(targetEngine);
+  // Serial.print(" Roll:");
+  // Serial.print(currentRollAngle);
+  // Serial.print(" Pitch:");
+  // Serial.print(currentPitchAngle);
+  // Serial.print(" Yaw:");
+  // Serial.println(currentYawAngle);
 }

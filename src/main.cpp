@@ -1,4 +1,5 @@
 #include "Header Files\main.h"
+#include "Header Files/Airplane.h"
 
 // Display
 SSD1306Wire ui(0x3c, SDA, SCL);
@@ -13,23 +14,17 @@ OverlayCallback bluetoothOverlays[] = {bluetoothOverlay};
 // frames are the single views that slide in
 FrameCallback frames[] = {drawFrame1};
 
+Airplane& airplane = Airplane::getInstance();
+
 void setup() {
   Serial.begin(115200);
-
   pinMode(BUILTIN_LED, OUTPUT);
 
   setupDisplay();
-  // setupSD();
   setupRadio();
 
-  engine.attach(ENGINE_PIN, 1000, 2000);
-  rollLeftMotor.attach(ROLL_LEFT_MOTOR_PIN);
-  // rollRightMotor.attach(ROLL_RIGHT_MOTOR_PIN);
-
-  elevationLeftMotor.attach(ELEVATION_LEFT_MOTOR_PIN);
-  elevationRightMotor.attach(ELEVATION_RIGHT_MOTOR_PIN);
-
-  rudderMotor.attach(RUDDER_MOTOR_PIN);
+  // Initialize airplane with servos
+  airplane.initialize();  // This now handles servo setup
 }
 
 void loop() {
@@ -46,82 +41,25 @@ void loop() {
   if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
     Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
 
-    engine.write(0);          // Turn off the engine
-    rollLeftMotor.write(90);  // Center the ailerons
-    // rollRightMotor.write(90);       // Center the ailerons
-    elevationLeftMotor.write(90);   // Center the elevators
-    elevationRightMotor.write(90);  // Center the elevators
-    rudderMotor.write(90);          // Center the rudder
+    // Use Airplane class for emergency shutdown
+    airplane.emergencyShutdown();
 
     ACS();
     delay(20);
   } else {
-    // Update the motors
-    engine.write(engineRecieved);
-    rollLeftMotor.write(180 - aileronRecieved);
-    // rollRightMotor.write(180 - aileronRecieved);
-
-    elevationLeftMotor.write(elevatorsRecieved);
-    elevationRightMotor.write(180 - elevatorsRecieved);
-    rudderMotor.write(map(rudderRecieved, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom));
+    // Update the controls using Airplane class
+    airplane.setThrottle(engineRecieved);
+    airplane.setAilerons(aileronRecieved);     // Aileron inverted
+    airplane.setElevators(elevatorsRecieved);  // Left elevator value (right will be auto-inverted)
+    airplane.setRudder(rudderRecieved);
   }
 }
 
 void ACS() {
-  // Center the servos
-  engine.write(0);          // Turn off the engine
-  rollLeftMotor.write(90);  // Center the ailerons
-  // rollRightMotor.write(90);       // Center the ailerons
-  elevationLeftMotor.write(90);   // Center the elevators
-  elevationRightMotor.write(90);  // Center the elevators
-  rudderMotor.write(90);          // Center the rudder
-
-  Serial.println("All servos centered");
+  airplane.resetToSafeDefaults();  // Center the servos
 }
 
-void setupSD() {
-  // SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
-
-  // if (!SD.begin(SD_CS)) {
-  //   Serial.println("Card Mount Failed");
-  //   return;
-  // }
-
-  // uint8_t cardType = SD.cardType();
-
-  // if (cardType == CARD_NONE) {
-  //   Serial.println("No SD card attached");
-  //   return;
-  // }
-
-  // Serial.print("SD Card Type: ");
-  // if (cardType == CARD_MMC)
-  //   Serial.println("MMC");
-  // else if (cardType == CARD_SD)
-  //   Serial.println("SDSC");
-  // else if (cardType == CARD_SDHC)
-  //   Serial.println("SDHC");
-  // else
-  //   Serial.println("UNKNOWN");
-
-  // uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-  // Serial.printf("SD Card Size: %lluMB\n", cardSize);
-
-  // listDir(SD, "/", 0);
-  // createDir(SD, "/mydir");
-  // listDir(SD, "/", 0);
-  // removeDir(SD, "/mydir");
-  // listDir(SD, "/", 2);
-  // writeFile(SD, "/hello.txt", "Hello ");
-  // appendFile(SD, "/hello.txt", "World!\n");
-  // readFile(SD, "/hello.txt");
-  // deleteFile(SD, "/foo.txt");
-  // renameFile(SD, "/hello.txt", "/foo.txt");
-  // readFile(SD, "/foo.txt");
-  // testFileIO(SD, "/test.txt");
-  // Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-  // Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
-}
+void setupSD() {}
 
 void setupRadio() {
   LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
