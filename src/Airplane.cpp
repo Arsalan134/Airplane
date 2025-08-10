@@ -1,5 +1,9 @@
 #include "Header Files\Airplane.h"
 
+// =============================================================================
+// STATIC MEMBERS AND SINGLETON IMPLEMENTATION
+// =============================================================================
+
 // Initialize static instance pointer
 Airplane* Airplane::instance = nullptr;
 
@@ -10,6 +14,10 @@ Airplane& Airplane::getInstance() {
   }
   return *instance;
 }
+
+// =============================================================================
+// CONSTRUCTOR
+// =============================================================================
 
 // Private constructor
 Airplane::Airplane() {
@@ -39,7 +47,92 @@ Airplane::Airplane() {
   landingModeEnabled = false;
 }
 
-// Public setter functions
+// =============================================================================
+// GETTERS (CONST FUNCTIONS)
+// =============================================================================
+
+// Basic control getters
+byte Airplane::getAileron() const {
+  return aileron;
+}
+
+byte Airplane::getRudder() const {
+  return rudder;
+}
+
+byte Airplane::getElevators() const {
+  return elevators;
+}
+
+int Airplane::getEngine() const {
+  return engine;
+}
+
+byte Airplane::getTrim() const {
+  return trim;
+}
+
+// Status getters
+int Airplane::getBatteryLevel() const {
+  return batteryLevel;
+}
+
+bool Airplane::isConnectionActive() const {
+  return connectionActive;
+}
+
+unsigned long Airplane::getLastReceivedTime() const {
+  return lastReceivedTime;
+}
+
+// High-level flight parameter getters
+float Airplane::getRollAngle() const {
+  return currentRollAngle;
+}
+
+float Airplane::getPitchAngle() const {
+  return currentPitchAngle;
+}
+
+float Airplane::getYawAngle() const {
+  return currentYawAngle;
+}
+
+float Airplane::getThrottle() const {
+  return currentThrottle;
+}
+
+String Airplane::getFlightMode() const {
+  if (landingModeEnabled)
+    return "Landing";
+  if (acrobaticModeEnabled)
+    return "Acrobatic";
+  if (stabilityModeEnabled)
+    return "Stability";
+  return "Manual";
+}
+
+// Complex getters
+bool Airplane::isControlInputValid() {
+  return connectionActive && (millis() - lastReceivedTime < 1000);
+}
+
+String Airplane::getStatusString() {
+  String status = "Airplane Status:\n";
+  status += "Engine: " + String(engine) + "\n";
+  status += "Aileron: " + String(aileron) + "\n";
+  status += "Rudder: " + String(rudder) + "\n";
+  status += "Elevators: " + String(elevators) + "\n";
+  status += "Trim: " + String(trim) + "\n";
+  status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
+  status += "Battery: " + String(batteryLevel) + "%";
+  return status;
+}
+
+// =============================================================================
+// BASIC SETTERS (LOW-LEVEL CONTROL)
+// =============================================================================
+
 void Airplane::setAileron(byte value) {
   if (isValidControlValue(value)) {
     aileron = value;
@@ -89,150 +182,10 @@ void Airplane::adjustTrimDown() {
   }
 }
 
-void Airplane::updateLastReceivedTime() {
-  lastReceivedTime = millis();
-  connectionActive = true;
-}
+// =============================================================================
+// HIGH-LEVEL SETTERS (FLIGHT CONTROL)
+// =============================================================================
 
-void Airplane::setConnectionStatus(bool active) {
-  connectionActive = active;
-  if (!active) {
-    emergencyShutdown();
-  }
-}
-
-// Getter functions
-byte Airplane::getAileron() const {
-  return aileron;
-}
-
-byte Airplane::getRudder() const {
-  return rudder;
-}
-
-byte Airplane::getElevators() const {
-  return elevators;
-}
-
-int Airplane::getEngine() const {
-  return engine;
-}
-
-byte Airplane::getTrim() const {
-  return trim;
-}
-
-int Airplane::getBatteryLevel() const {
-  return batteryLevel;
-}
-
-bool Airplane::isConnectionActive() const {
-  return connectionActive;
-}
-
-unsigned long Airplane::getLastReceivedTime() const {
-  return lastReceivedTime;
-}
-
-// Public utility functions
-void Airplane::initialize() {
-  resetToSafeDefaults();
-  updateBatteryLevel();
-}
-
-void Airplane::update() {
-  checkConnectionTimeout();
-  updateBatteryLevel();
-  validateControlSurfaces();
-}
-
-bool Airplane::isControlInputValid() {
-  return connectionActive && (millis() - lastReceivedTime < 1000);
-}
-
-void Airplane::emergencyShutdown() {
-  engine = 0;
-  aileron = 90;
-  rudder = 90;
-  elevators = 90;
-}
-
-String Airplane::getStatusString() {
-  String status = "Airplane Status:\n";
-  status += "Engine: " + String(engine) + "\n";
-  status += "Aileron: " + String(aileron) + "\n";
-  status += "Rudder: " + String(rudder) + "\n";
-  status += "Elevators: " + String(elevators) + "\n";
-  status += "Trim: " + String(trim) + "\n";
-  status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
-  status += "Battery: " + String(batteryLevel) + "%";
-  return status;
-}
-
-// Private helper functions
-void Airplane::validateControlSurfaces() {
-  if (!isValidControlValue(aileron))
-    aileron = 90;
-  if (!isValidControlValue(rudder))
-    rudder = 90;
-  if (!isValidControlValue(elevators))
-    elevators = 90;
-  if (engine < 0 || engine > 255)
-    engine = 0;
-}
-
-void Airplane::updateBatteryLevel() {
-  // Read battery voltage and convert to percentage
-  //   int analogRead = analogRead(A0);  // Assuming battery connected to A0
-  //   if (analogRead < minAnalogReadFromBattery) {
-  //     batteryLevel = 0;
-  //   } else if (analogRead > maxAnalogReadFromBattery) {
-  //     batteryLevel = 100;
-  //   } else {
-  //     batteryLevel = map(analogRead, minAnalogReadFromBattery, maxAnalogReadFromBattery, 0, 100);
-  //   }
-}
-
-void Airplane::checkConnectionTimeout() {
-  if (millis() - lastReceivedTime > 2000) {  // 2 second timeout
-    connectionActive = false;
-    // setEmergencyStop(true);
-  }
-}
-
-void Airplane::applyTrimToControls() {
-  // Apply trim adjustment to elevators (common for pitch trim)
-  int trimmedElevators = elevators + (trim - 90);
-  if (trimmedElevators >= 0 && trimmedElevators <= 180) {
-    elevators = trimmedElevators;
-  }
-}
-
-bool Airplane::isValidControlValue(byte value) {
-  return value >= 0 && value <= 180;
-}
-
-void Airplane::resetToSafeDefaults() {
-  engine = 0;
-  aileron = 90;
-  rudder = 90;
-  elevators = 90;
-  trim = 90;
-}
-
-void Airplane::logControlChanges() {
-  // Log control changes for debugging (can be expanded)
-  Serial.print("Controls updated - Aileron: ");
-  Serial.print(aileron);
-  Serial.print(" Rudder: ");
-  Serial.print(rudder);
-  Serial.print(" Elevators: ");
-  Serial.print(elevators);
-  Serial.print(" Engine: ");
-  Serial.println(engine);
-}
-
-// High-level flight control functions
 void Airplane::setRollAngle(float degrees) {
   currentRollAngle = constrainAngle(degrees, -45.0, 45.0);
   aileron = mapAngleToServo(currentRollAngle);
@@ -266,7 +219,62 @@ void Airplane::setThrottle(float percentage) {
   logControlChanges();
 }
 
-// Combined maneuver functions
+// =============================================================================
+// SAFETY AND CONNECTION SETTERS
+// =============================================================================
+
+void Airplane::updateLastReceivedTime() {
+  lastReceivedTime = millis();
+  connectionActive = true;
+}
+
+void Airplane::setConnectionStatus(bool active) {
+  connectionActive = active;
+  if (!active) {
+    emergencyShutdown();
+  }
+}
+
+// =============================================================================
+// FLIGHT MODE SETTERS
+// =============================================================================
+
+void Airplane::setStabilityMode(bool enabled) {
+  stabilityModeEnabled = enabled;
+  if (enabled) {
+    acrobaticModeEnabled = false;
+    Serial.println("Stability mode enabled");
+  } else {
+    Serial.println("Stability mode disabled");
+  }
+}
+
+void Airplane::setAcrobaticMode(bool enabled) {
+  acrobaticModeEnabled = enabled;
+  if (enabled) {
+    stabilityModeEnabled = false;
+    landingModeEnabled = false;
+    Serial.println("Acrobatic mode enabled - Full control");
+  } else {
+    Serial.println("Acrobatic mode disabled");
+  }
+}
+
+void Airplane::setLandingMode(bool enabled) {
+  landingModeEnabled = enabled;
+  if (enabled) {
+    stabilityModeEnabled = true;
+    acrobaticModeEnabled = false;
+    Serial.println("Landing mode enabled");
+  } else {
+    Serial.println("Landing mode disabled");
+  }
+}
+
+// =============================================================================
+// COMBINED MANEUVER FUNCTIONS
+// =============================================================================
+
 void Airplane::performLevel() {
   setRollAngle(0);
   setPitchAngle(0);
@@ -310,17 +318,6 @@ void Airplane::performBarrelRoll(int direction) {
   Serial.println(direction > 0 ? "right" : "left");
 }
 
-void Airplane::performLoop(float throttle) {
-  if (!acrobaticModeEnabled) {
-    Serial.println("Acrobatic mode required for loop");
-    return;
-  }
-
-  setThrottle(throttle);
-  setPitchAngle(25.0);  // Initial climb for loop
-  Serial.println("Performing loop maneuver");
-}
-
 void Airplane::performLanding(float glidePath) {
   setLandingMode(true);
   setPitchAngle(glidePath);
@@ -336,70 +333,144 @@ void Airplane::performTakeoff(float throttle) {
   Serial.println("Performing takeoff");
 }
 
-// Flight mode functions
-void Airplane::setStabilityMode(bool enabled) {
-  stabilityModeEnabled = enabled;
-  if (enabled) {
-    acrobaticModeEnabled = false;
-    Serial.println("Stability mode enabled");
-  } else {
-    Serial.println("Stability mode disabled");
+// =============================================================================
+// PUBLIC UTILITY FUNCTIONS
+// =============================================================================
+
+void Airplane::initialize() {
+  resetToSafeDefaults();
+  updateBatteryLevel();
+  Serial.println("Airplane initialized");
+}
+
+void Airplane::update() {
+  checkConnectionTimeout();
+  updateBatteryLevel();
+  validateControlSurfaces();
+}
+
+void Airplane::emergencyShutdown() {
+  engine = 0;
+  aileron = 90;
+  rudder = 90;
+  elevators = 90;
+  currentThrottle = 0;
+  currentRollAngle = 0;
+  currentPitchAngle = 0;
+  currentYawAngle = 0;
+  Serial.println("Emergency shutdown executed");
+}
+
+// =============================================================================
+// PRIVATE HELPER FUNCTIONS
+// =============================================================================
+
+void Airplane::validateControlSurfaces() {
+  bool changed = false;
+
+  if (!isValidControlValue(aileron)) {
+    aileron = 90;
+    changed = true;
+  }
+  if (!isValidControlValue(rudder)) {
+    rudder = 90;
+    changed = true;
+  }
+  if (!isValidControlValue(elevators)) {
+    elevators = 90;
+    changed = true;
+  }
+  if (engine < 0 || engine > 255) {
+    engine = 0;
+    changed = true;
+  }
+
+  if (changed) {
+    Serial.println("Control surfaces validated and corrected");
   }
 }
 
-void Airplane::setAcrobaticMode(bool enabled) {
-  acrobaticModeEnabled = enabled;
-  if (enabled) {
-    stabilityModeEnabled = false;
-    landingModeEnabled = false;
-    Serial.println("Acrobatic mode enabled - Full control");
-  } else {
-    Serial.println("Acrobatic mode disabled");
+void Airplane::updateBatteryLevel() {
+  // Read battery voltage and convert to percentage
+  // int analogValue = analogRead(A0); // Assuming battery connected to A0
+  // if (analogValue < minAnalogReadFromBattery) {
+  //   batteryLevel = 0;
+  // } else if (analogValue > maxAnalogReadFromBattery) {
+  //   batteryLevel = 100;
+  // } else {
+  //   batteryLevel = map(analogValue, minAnalogReadFromBattery, maxAnalogReadFromBattery, 0, 100);
+  // }
+
+  // Placeholder for now
+  batteryLevel = 85;
+}
+
+void Airplane::checkConnectionTimeout() {
+  if (millis() - lastReceivedTime > 2000) {  // 2 second timeout
+    if (connectionActive) {
+      connectionActive = false;
+      // setEmergencyStop(true);
+      Serial.println("Connection timeout - Emergency stop activated");
+    }
   }
 }
 
-void Airplane::setLandingMode(bool enabled) {
-  landingModeEnabled = enabled;
-  if (enabled) {
-    stabilityModeEnabled = true;
-    acrobaticModeEnabled = false;
-    Serial.println("Landing mode enabled");
-  } else {
-    Serial.println("Landing mode disabled");
+void Airplane::applyTrimToControls() {
+  // Apply trim adjustment to elevators (common for pitch trim)
+  int trimmedElevators = elevators + (trim - 90);
+  if (trimmedElevators >= 0 && trimmedElevators <= 180) {
+    elevators = trimmedElevators;
   }
 }
 
-// High-level getters
-float Airplane::getRollAngle() const {
-  return currentRollAngle;
+bool Airplane::isValidControlValue(byte value) {
+  return value >= 0 && value <= 180;
 }
 
-float Airplane::getPitchAngle() const {
-  return currentPitchAngle;
+void Airplane::resetToSafeDefaults() {
+  aileron = 90;
+  rudder = 90;
+  elevators = 90;
+  engine = 0;
+  trim = 90;
+
+  // Reset high-level parameters
+  currentRollAngle = 0.0;
+  currentPitchAngle = 0.0;
+  currentYawAngle = 0.0;
+  currentThrottle = 0;
+
+  // Reset to safe flight mode
+  stabilityModeEnabled = true;
+  acrobaticModeEnabled = false;
+  landingModeEnabled = false;
+
+  Serial.println("Reset to safe defaults");
 }
 
-float Airplane::getYawAngle() const {
-  return currentYawAngle;
+void Airplane::logControlChanges() {
+  // Log control changes for debugging
+  Serial.print("Controls - A:");
+  Serial.print(aileron);
+  Serial.print(" R:");
+  Serial.print(rudder);
+  Serial.print(" E:");
+  Serial.print(elevators);
+  Serial.print(" Engine:");
+  Serial.print(engine);
+  Serial.print(" Roll:");
+  Serial.print(currentRollAngle);
+  Serial.print(" Pitch:");
+  Serial.print(currentPitchAngle);
+  Serial.print(" Yaw:");
+  Serial.println(currentYawAngle);
 }
 
-float Airplane::getThrottle() const {
-  return currentThrottle;
-}
-
-String Airplane::getFlightMode() const {
-  if (landingModeEnabled)
-    return "Landing";
-  if (acrobaticModeEnabled)
-    return "Acrobatic";
-  if (stabilityModeEnabled)
-    return "Stability";
-  return "Manual";
-}
-
-// Private helper functions for high-level control
 byte Airplane::mapAngleToServo(float angle) {
   // Map angle (-45 to +45 degrees) to servo range (0 to 180)
-  return constrain(map(angle * 10, -450, 450, 0, 180), 0, 180);
+  // Center position is 90 degrees
+  int servoValue = 90 + (angle * 2);  // Scale angle to servo range
+  return constrain(servoValue, 0, 180);
 }
 
 float Airplane::constrainAngle(float angle, float minAngle, float maxAngle) {

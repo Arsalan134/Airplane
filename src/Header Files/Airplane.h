@@ -89,7 +89,6 @@ class Airplane {
   void performDescent(float angle, float throttle = 40);
   void performTurn(float bankAngle, float rudderInput = 0);
   void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
-  void performLoop(float throttle = 85);
   void performLanding(float glidePath = -3.0);
   void performTakeoff(float throttle = 90);
 
@@ -104,7 +103,6 @@ class Airplane {
   byte getElevators() const;
   int getEngine() const;
   byte getTrim() const;
-  bool isEmergencyStopActive() const;
   int getBatteryLevel() const;
   bool isConnectionActive() const;
   unsigned long getLastReceivedTime() const;
