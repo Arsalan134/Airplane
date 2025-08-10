@@ -34,6 +34,17 @@ class Airplane {
   unsigned long lastReceivedTime;
   bool connectionActive;
 
+  // High-level flight parameters
+  float currentRollAngle;
+  float currentPitchAngle;
+  float currentYawAngle;
+  byte currentThrottle;
+
+  // Flight modes
+  bool stabilityModeEnabled;
+  bool acrobaticModeEnabled;
+  bool landingModeEnabled;
+
   // Private helper functions
   void validateControlSurfaces();
   void updateBatteryLevel();
@@ -42,6 +53,8 @@ class Airplane {
   bool isValidControlValue(byte value);
   void resetToSafeDefaults();
   void logControlChanges();
+  byte mapAngleToServo(float angle);
+  float constrainAngle(float angle, float minAngle, float maxAngle);
 
  public:
   // Singleton instance getter
@@ -62,6 +75,29 @@ class Airplane {
   void updateLastReceivedTime();
   void setConnectionStatus(bool active);
 
+  // High-level flight control functions
+  void setRollAngle(float degrees);    // Roll left (-) or right (+)
+  void setBank(float degrees);         // Banking maneuver (alias for roll)
+  void setPitchAngle(float degrees);   // Pitch up (+) or down (-)
+  void setAttackAngle(float degrees);  // Set angle of attack
+  void setYawAngle(float degrees);     // Yaw left (-) or right (+)
+  void setThrottle(float percentage);  // Engine throttle 0-100%
+
+  // Combined maneuver functions
+  void performLevel();  // Level flight (all controls neutral)
+  void performClimb(float angle, float throttle = 75);
+  void performDescent(float angle, float throttle = 40);
+  void performTurn(float bankAngle, float rudderInput = 0);
+  void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
+  void performLoop(float throttle = 85);
+  void performLanding(float glidePath = -3.0);
+  void performTakeoff(float throttle = 90);
+
+  // Flight mode functions
+  void setStabilityMode(bool enabled);  // Auto-leveling mode
+  void setAcrobaticMode(bool enabled);  // Full control mode
+  void setLandingMode(bool enabled);    // Landing assistance mode
+
   // Getters
   byte getAileron() const;
   byte getRudder() const;
@@ -72,6 +108,13 @@ class Airplane {
   int getBatteryLevel() const;
   bool isConnectionActive() const;
   unsigned long getLastReceivedTime() const;
+
+  // High-level getters
+  float getRollAngle() const;
+  float getPitchAngle() const;
+  float getYawAngle() const;
+  float getThrottle() const;
+  String getFlightMode() const;
 
   // Public utility functions
   void initialize();
