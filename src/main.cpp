@@ -16,6 +16,8 @@ FrameCallback frames[] = {drawFrame1};
 
 Airplane& airplane = Airplane::getInstance();
 
+static unsigned long lastDisplayUpdate = 0;
+
 void setup() {
   Serial.begin(115200);
   pinMode(BUILTIN_LED, OUTPUT);
@@ -28,14 +30,13 @@ void setup() {
 }
 
 void loop() {
-  // Display
-  int remainingTimeBudget = display.update();
+  // Non-blocking display update
+  unsigned long currentTime = millis();
 
-  if (remainingTimeBudget > 0) {
-    // You can do some work here
-    // Don't do stuff if you are below your time budget.
-
-    delay(remainingTimeBudget);
+  // Update display at target FPS (30 FPS = 33ms intervals)
+  if (currentTime - lastDisplayUpdate >= 33) {
+    display.update();
+    lastDisplayUpdate = currentTime;
   }
 
   if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
@@ -53,6 +54,7 @@ void loop() {
     airplane.setTrim(trimRecieved);            // Set trim value
     airplane.setElevators(elevatorsRecieved);  // Left elevator value (right will be auto-inverted)
     airplane.setRudder(rudderRecieved);
+
   }
 }
 

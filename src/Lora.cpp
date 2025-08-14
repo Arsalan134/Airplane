@@ -9,6 +9,7 @@ int aileronRecieved = 90;
 int rudderRecieved = 90;
 int elevatorsRecieved = 90;
 int trimRecieved = 0;
+int trimToDisplay = 0;
 
 unsigned long lastRecievedTime = millis();
 
@@ -40,6 +41,8 @@ byte simple_checksum(const byte* data, size_t len) {
   return sum;
 }
 
+int indE, indA, indR, indEL, indT, indHashtag;
+
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
 
@@ -54,7 +57,8 @@ void onReceive(int packetSize) {
     message += (char)LoRa.read();
 
   recievedMessage = message;
-  Serial.println("\tMessage: \t" + recievedMessage);
+
+  Serial.print("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
     Serial.println("Received message is too short");
@@ -62,7 +66,7 @@ void onReceive(int packetSize) {
     return;
   }
 
-  int indHashtag = recievedMessage.indexOf('#');
+  indHashtag = recievedMessage.indexOf('#');
   if (indHashtag == -1) {
     Serial.println("No end of message found");
     return;
@@ -81,31 +85,31 @@ void onReceive(int packetSize) {
     return;
   }
 
-  int indE = recievedMessage.indexOf('e');  // 'e' is used for engine
+  indE = recievedMessage.indexOf('e');  // 'e' is used for engine
   if (indE == -1) {
     Serial.println("No engine data found in the message");
     return;
   }
 
-  int indA = recievedMessage.indexOf('a');  // 'a' is used for ailerons
+  indA = recievedMessage.indexOf('a');  // 'a' is used for ailerons
   if (indA == -1) {
     Serial.println("No aileron data found in the message");
     return;
   }
 
-  int indR = recievedMessage.indexOf('r');  // 'r' is used for rudder
+  indR = recievedMessage.indexOf('r');  // 'r' is used for rudder
   if (indR == -1) {
     Serial.println("No rudder data found in the message");
     return;
   }
 
-  int indEL = recievedMessage.indexOf('l');  // 'l' is used for elevators
+  indEL = recievedMessage.indexOf('l');  // 'l' is used for elevators
   if (indEL == -1) {
     Serial.println("No elevator data found in the message");
     return;
   }
 
-  int indT = recievedMessage.indexOf('t');  // 't' is used for trim
+  indT = recievedMessage.indexOf('t');  // 't' is used for trim
   if (indT == -1) {
     Serial.println("No trim data found in the message");
     return;
@@ -119,7 +123,7 @@ void onReceive(int packetSize) {
   elevatorsRecieved = recievedMessage.substring(indEL + 1, indT).toInt();
   trimRecieved = recievedMessage.substring(indT + 1).toInt();
 
-  Serial.print("Engine is: " + String(engineRecieved));
+  Serial.print("\tEngine is: " + String(engineRecieved));
   Serial.print("\tAilerons is: " + String(aileronRecieved));
   Serial.print("\t\tRudder is: " + String(rudderRecieved));
   Serial.print("\tElevators is: " + String(elevatorsRecieved));
@@ -130,7 +134,7 @@ void onReceive(int packetSize) {
   Serial.print("\tRSSI: " + String(RSSI));
 
   Serial.print("\tElapsed: ");
-  Serial.print(millis() - lastRecievedTime);
+  Serial.println(millis() - lastRecievedTime);
 
   digitalWrite(BUILTIN_LED, 0);
 }
@@ -138,18 +142,6 @@ void onReceive(int packetSize) {
 void onTxDone() {
   Serial.println("TxDone");
   LoRa_rxMode();
-}
-
-boolean runEvery(unsigned long interval) {
-  static unsigned long previousMillis = 0;
-  unsigned long currentMillis = millis();
-
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    return true;
-  }
-
-  return false;
 }
 
 // #define sliderPin A0

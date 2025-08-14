@@ -20,6 +20,8 @@ extern int rudderRecieved;
 extern int elevatorsRecieved;
 extern int trimRecieved;
 
+extern int trimToDisplay;
+
 extern unsigned long lastRecievedTime;
 
 #define ENGINE_PIN 4

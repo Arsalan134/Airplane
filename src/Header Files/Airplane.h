@@ -42,10 +42,10 @@ class Airplane {
 #define RUDDER_MOTOR_PIN 15
 
 #define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
-#define TRIM_LIMIT TRIM_STEP * 23  // 46 degrees up and down
+#define TRIM_LIMIT 45              // 45 degrees up and down
 
   // Trim settings
-  byte trim = 0;
+  int trim = 0;
 #define TRIM_STEP 2
 
   // Battery monitoring
@@ -84,7 +84,7 @@ class Airplane {
   void setAilerons(byte value);  // Set both ailerons
 
   // Setter for trim
-  void setTrim(byte value);
+  void setTrim(int value);
   void adjustTrimUp();
   void adjustTrimDown();
 

@@ -1,4 +1,5 @@
 #include "Header Files\Airplane.h"
+#include "Common/common.h"
 
 // =============================================================================
 // STATIC MEMBERS AND SINGLETON IMPLEMENTATION
@@ -135,7 +136,6 @@ String Airplane::getStatusString() {
 // =============================================================================
 
 void Airplane::setElevators(byte value) {
-  value += trim;
   if (isValidControlValue(value)) {
     targetElevators = value;
     writeToServos();
@@ -163,23 +163,25 @@ void Airplane::setThrottle(byte value) {
   }
 }
 
-void Airplane::setTrim(byte value) {
+void Airplane::setTrim(int value) {
   if (value > 0)
     adjustTrimUp();
   else if (value < 0)
     adjustTrimDown();
+
+  trimRecieved = 0;
 }
 
 void Airplane::adjustTrimUp() {
   trim += TRIM_STEP;
   trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
-  Serial.println("Trim adjusted up to: " + String(trim));
+  trimToDisplay = trim;  // Update trim2 for compatibility with Lora
 }
 
 void Airplane::adjustTrimDown() {
   trim -= TRIM_STEP;
   trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
-  Serial.println("Trim adjusted down to: " + String(trim));
+  trimToDisplay = trim;  // Update trim2 for compatibility with Lora
 }
 
 // =============================================================================
@@ -314,7 +316,6 @@ void Airplane::resetToSafeDefaults() {
   targetRoll = 90;
   targetRudder = 90;
   targetElevators = 90;
-  trim = 0;
 
   // Reset to safe flight mode
   currentFlightMode = FlightMode::STABILITY;
@@ -331,9 +332,9 @@ void Airplane::resetToSafeDefaults() {
 
 void Airplane::writeToServos() {
   engineServo.write(targetEngine);
-  rollLeftMotorServo.write(targetRoll);
-  elevationLeftMotorServo.write(targetElevators);
-  elevationRightMotorServo.write(180 - targetElevators);  // Right elevator inverted
+  rollLeftMotorServo.write(180 - targetRoll);
+  elevationLeftMotorServo.write(targetElevators + trim);
+  elevationRightMotorServo.write(180 - targetElevators - trim);  // Right elevator inverted
   rudderMotorServo.write(targetRudder);
 
   logControlChanges();

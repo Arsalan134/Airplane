@@ -11,6 +11,7 @@ void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
   display->drawString(0 + x, 10 + y, String(aileronRecieved));
   display->drawString(25 + x, 10 + y, String(elevatorsRecieved));
   display->drawString(50 + x, 10 + y, String(rudderRecieved));
+  display->drawString(75 + x, 10 + y, String(trimToDisplay));
 
   display->drawString(50 + x, 20 + y, String((int)(engineRecieved / 1.8)) + "% Engine");
 
