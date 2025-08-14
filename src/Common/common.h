@@ -18,6 +18,8 @@ extern int engineRecieved;
 extern int aileronRecieved;
 extern int rudderRecieved;
 extern int elevatorsRecieved;
+extern int trimRecieved;
+
 extern unsigned long lastRecievedTime;
 
 #define ENGINE_PIN 4

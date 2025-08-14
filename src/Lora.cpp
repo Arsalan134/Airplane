@@ -1,13 +1,15 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String message = "e0a90r90l90#35";
-String recievedMessage = "e0a90r90l90#35";
+String message = "e0a90r90l90t0#103";
+String recievedMessage = "e0a90r90l90t0#103";
 
 int engineRecieved = 0;
 int aileronRecieved = 90;
 int rudderRecieved = 90;
 int elevatorsRecieved = 90;
+int trimRecieved = 0;
+
 unsigned long lastRecievedTime = millis();
 
 int RSSI = 0;
@@ -29,6 +31,7 @@ void LoRa_sendMessage(String message) {
   LoRa.endPacket(true);  // finish packet and send it
 }
 
+// XOR checksum function
 byte simple_checksum(const byte* data, size_t len) {
   byte sum = 0;
   for (size_t i = 0; i < len; i++) {
@@ -102,17 +105,25 @@ void onReceive(int packetSize) {
     return;
   }
 
+  int indT = recievedMessage.indexOf('t');  // 't' is used for trim
+  if (indT == -1) {
+    Serial.println("No trim data found in the message");
+    return;
+  }
+
   lastRecievedTime = millis();
 
   engineRecieved = recievedMessage.substring(indE + 1, indA).toInt();
   aileronRecieved = recievedMessage.substring(indA + 1, indR).toInt();
   rudderRecieved = recievedMessage.substring(indR + 1, indEL).toInt();
-  elevatorsRecieved = recievedMessage.substring(indEL + 1).toInt();
+  elevatorsRecieved = recievedMessage.substring(indEL + 1, indT).toInt();
+  trimRecieved = recievedMessage.substring(indT + 1).toInt();
 
   Serial.print("Engine is: " + String(engineRecieved));
   Serial.print("\tAilerons is: " + String(aileronRecieved));
   Serial.print("\t\tRudder is: " + String(rudderRecieved));
   Serial.print("\tElevators is: " + String(elevatorsRecieved));
+  Serial.print("\tTrim is: " + String(trimRecieved));
 
   RSSI = LoRa.packetRssi();
 
@@ -141,65 +152,6 @@ boolean runEvery(unsigned long interval) {
   return false;
 }
 
-// void loraLoop() {
-//   // if (runEvery(1000)) {
-//   // try to parse packet
-//   if (LoRa.parsePacket()) {
-//     // received a packet
-//     Serial.print("Received packet ");
-
-//     // read packet
-//     if (LoRa.available()) {
-//       recievedMessage = LoRa.readString();
-//       Serial.print(recievedMessage);
-//     }
-
-//     // print RSSI of packet
-//     int rssi = LoRa.packetRssi();
-//     Serial.print(" with RSSI ");
-//     Serial.println(rssi);
-
-//     LoRa.flush();
-//     Serial.println("LORA LOOP");
-//   }
-//   // }
-// }
-
-// void radioConnection() {
-//   transmitData[throttleIndex] =
-//       emergencyStopIsActive ? 0 : max(map(L2Value, 0, 255, 0, 90), map(R2Value, 0, 255, 0,
-//       180));
-
-//   trim = constrain(trim, 90 - 45, 90 + 45);
-
-//   transmitData[trimIndex] = trim;
-
-//   radio.stopListening();
-
-//   if (radio.write(&transmitData, sizeof(transmitData)))
-//     radio.startListening();
-//   else
-//     Serial.println("Failed to transmit !");
-
-//   while (radio.available()) {
-//     radio.read(&recievedData, sizeof(recievedData));
-//     lastRecievedTime = millis();
-//   }
-
-//   setLEDColor();
-
-//   // Serial.print("Elapsed: ");
-//   // Serial.println(millis() - lastRecievedTime);
-// }
-
-// void reset() {
-//   transmitData[rollIndex] = 90;
-//   transmitData[pitchIndex] = 90;
-//   transmitData[yawIndex] = 90;
-
-//   transmitData[autopilotIsOnIndex] = false;
-// }
-
 // #define sliderPin A0
 
 // #define rollIndex 0
@@ -210,8 +162,3 @@ boolean runEvery(unsigned long interval) {
 // #define trimIndex 5
 
 // #define batteryLevelIndex 0
-
-// byte transmitData[6];
-// byte recievedData[1];
-
-// unsigned long lastRecievedTime = millis();

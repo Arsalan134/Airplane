@@ -50,6 +50,7 @@ void loop() {
     // Update the controls using Airplane class
     airplane.setThrottle(engineRecieved);
     airplane.setAilerons(aileronRecieved);     // Aileron inverted
+    airplane.setTrim(trimRecieved);            // Set trim value
     airplane.setElevators(elevatorsRecieved);  // Left elevator value (right will be auto-inverted)
     airplane.setRudder(rudderRecieved);
   }

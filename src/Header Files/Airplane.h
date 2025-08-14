@@ -42,9 +42,10 @@ class Airplane {
 #define RUDDER_MOTOR_PIN 15
 
 #define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
+#define TRIM_LIMIT TRIM_STEP * 23  // 46 degrees up and down
 
   // Trim settings
-  byte trim;
+  byte trim = 0;
 #define TRIM_STEP 2
 
   // Battery monitoring
@@ -67,7 +68,6 @@ class Airplane {
   // Private helper functions
   void updateBatteryLevel();
   void checkConnectionTimeout();
-  void applyTrimToControls();
   bool isValidControlValue(byte value);
   void logControlChanges();
   // byte mapAngleToServo(float angle);
@@ -81,6 +81,7 @@ class Airplane {
   void setThrottle(byte value);  // Engine throttle 0-100% | 0 - 180
   void setRudder(byte value);
   void setElevators(byte value);
+  void setAilerons(byte value);  // Set both ailerons
 
   // Setter for trim
   void setTrim(byte value);
@@ -93,7 +94,6 @@ class Airplane {
   void setConnectionStatus(bool active);
 
   // High-level flight control functions
-  void setAilerons(byte value);       // Set both ailerons
   void setRollAngle(float degrees);   // Roll left (-) or right (+)
   void setPitchAngle(float degrees);  // Pitch up (+) or down (-)
   void setYawAngle(float degrees);    // Yaw left (-) or right (+)

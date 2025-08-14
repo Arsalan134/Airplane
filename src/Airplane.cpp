@@ -28,7 +28,7 @@ Airplane::Airplane() {
   targetElevators = 90;
 
   // Initialize trim
-  trim = 90;
+  trim = 0;
 
   // Initialize safety settings
   lastReceivedTime = millis();
@@ -135,6 +135,7 @@ String Airplane::getStatusString() {
 // =============================================================================
 
 void Airplane::setElevators(byte value) {
+  value += trim;
   if (isValidControlValue(value)) {
     targetElevators = value;
     writeToServos();
@@ -163,24 +164,22 @@ void Airplane::setThrottle(byte value) {
 }
 
 void Airplane::setTrim(byte value) {
-  if (isValidControlValue(value)) {
-    trim = value;
-    applyTrimToControls();
-  }
+  if (value > 0)
+    adjustTrimUp();
+  else if (value < 0)
+    adjustTrimDown();
 }
 
 void Airplane::adjustTrimUp() {
-  if (trim + TRIM_STEP <= 180) {
-    trim += TRIM_STEP;
-    applyTrimToControls();
-  }
+  trim += TRIM_STEP;
+  trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
+  Serial.println("Trim adjusted up to: " + String(trim));
 }
 
 void Airplane::adjustTrimDown() {
-  if (trim - TRIM_STEP >= 0) {
-    trim -= TRIM_STEP;
-    applyTrimToControls();
-  }
+  trim -= TRIM_STEP;
+  trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
+  Serial.println("Trim adjusted down to: " + String(trim));
 }
 
 // =============================================================================
@@ -305,14 +304,6 @@ void Airplane::checkConnectionTimeout() {
   }
 }
 
-void Airplane::applyTrimToControls() {
-  // Apply trim adjustment to elevators (common for pitch trim)
-  int trimmedElevators = targetElevators + (trim - 90);
-  if (trimmedElevators >= 0 && trimmedElevators <= 180) {
-    targetElevators = trimmedElevators;
-  }
-}
-
 bool Airplane::isValidControlValue(byte value) {
   return value >= 0 && value <= 180;
 }
@@ -323,7 +314,7 @@ void Airplane::resetToSafeDefaults() {
   targetRoll = 90;
   targetRudder = 90;
   targetElevators = 90;
-  trim = 90;
+  trim = 0;
 
   // Reset to safe flight mode
   currentFlightMode = FlightMode::STABILITY;
