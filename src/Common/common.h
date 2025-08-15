@@ -32,6 +32,8 @@ extern int flapsToDisplay;
 extern bool resetAileronTrim;
 extern bool resetElevatorTrim;
 
+extern bool airBrakeReceived;
+
 extern int RSSIToDisplay;
 extern int elapsedTimeToDisplay;
 

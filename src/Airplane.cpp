@@ -208,6 +208,10 @@ void Airplane::resetElevatorTrim() {
   elevatorTrimToDisplay = elevatorTrim;  // Update trim for compatibility with Lora
 }
 
+void Airplane::setLandingAirbrake(bool active) {
+  landingAirbrake = active;
+}
+
 // =============================================================================
 // HIGH-LEVEL SETTERS (FLIGHT CONTROL)
 // =============================================================================
@@ -360,11 +364,13 @@ void Airplane::writeToServos() {
 
   // Ailerons
   int targetRollForServo = targetRoll;
-  bool shouldApplyAileronTrim = !landingAirbrake;  // emergency landing
   bool shouldApplyFlaps = abs(targetRollForServo - 90) < 10;
 
-  targetRollForServo += shouldApplyAileronTrim ? aileronTrim : 0;
+  targetRollForServo += aileronTrim;
   targetRollForServo += shouldApplyFlaps ? flaps * FLAP_ANGLE : 0;
+
+  if (landingAirbrake)
+    targetRollForServo = 0;
 
   rollLeftMotorServo.write(constrain(180 - targetRollForServo, 0, 180));  // Left aileron
 

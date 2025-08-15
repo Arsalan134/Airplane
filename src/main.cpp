@@ -52,6 +52,7 @@ void loop() {
     airplane.setFlaps(flapsRecieved);
     airplane.setElevatorTrim(elevatorTrimReceived);
     airplane.setAileronTrim(aileronTrimReceived);
+    airplane.setLandingAirbrake(airBrakeReceived);
 
     if (resetAileronTrim)
       airplane.resetAileronTrim();

@@ -1,8 +1,8 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String message = "e0a90r90l90t0i0f0z0y0#107";
-String recievedMessage = "e0a90r90l90t0i0f0z0y0#107";
+String message = "e0a90r90l90t0i0f0z0y0b0#57";
+String recievedMessage = "e0a90r90l90t0i0f0z0y0b0#57";
 
 int engineReceived = 0;
 int aileronReceived = 90;
@@ -20,6 +20,8 @@ int flapsToDisplay = 0;
 
 bool resetAileronTrim = false;
 bool resetElevatorTrim = false;
+
+bool airBrakeReceived = false;
 
 unsigned long lastRecievedTime = millis();
 
@@ -54,7 +56,7 @@ byte simple_checksum(const byte* data, size_t len) {
   return sum;
 }
 
-int indE, indA, indR, indEL, indT, indI, indF, indZ, indY, indHashtag;
+int indE, indA, indR, indEL, indT, indI, indF, indZ, indY, indB, indHashtag;
 
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
@@ -152,6 +154,12 @@ void onReceive(int packetSize) {
     return;
   }
 
+  indB = recievedMessage.indexOf('b');  // 'b' is used for airbrake
+  if (indB == -1) {
+    Serial.println("No airbrake data found in the message");
+    return;
+  }
+
   engineReceived = recievedMessage.substring(indE + 1, indA).toInt();
   aileronReceived = recievedMessage.substring(indA + 1, indR).toInt();
   rudderReceived = recievedMessage.substring(indR + 1, indEL).toInt();
@@ -160,7 +168,8 @@ void onReceive(int packetSize) {
   aileronTrimReceived = recievedMessage.substring(indI + 1, indF).toInt();
   flapsRecieved = recievedMessage.substring(indF + 1, indZ).toInt();
   resetAileronTrim = recievedMessage.substring(indZ + 1, indY).toInt();
-  resetElevatorTrim = recievedMessage.substring(indY + 1).toInt();
+  resetElevatorTrim = recievedMessage.substring(indY + 1, indB).toInt();
+  airBrakeReceived = recievedMessage.substring(indB + 1).toInt();
 
   RSSI = LoRa.packetRssi();
   RSSIToDisplay = RSSI;

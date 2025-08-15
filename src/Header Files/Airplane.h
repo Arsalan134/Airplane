@@ -93,6 +93,7 @@ class Airplane {
   void setElevatorTrim(int value);
   void setAileronTrim(int value);
   void setFlaps(int value);
+  void setLandingAirbrake(bool active);
 
   // Reset trim functions
   void resetAileronTrim();
