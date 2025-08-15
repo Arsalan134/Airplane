@@ -43,10 +43,16 @@ class Airplane {
 
 #define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
 #define TRIM_LIMIT 45              // 45 degrees up and down
+#define TRIM_STEP 2
+#define FLAP_ANGLE 10
+
+#define CONNECTION_TIMEOUT 2000
 
   // Trim settings
-  int trim = 0;
-#define TRIM_STEP 2
+  int elevatorTrim = 0;
+  int aileronTrim = 0;
+  int flaps = 0;
+  bool landingAirbrake = false;
 
   // Battery monitoring
   int batteryLevel;
@@ -84,9 +90,13 @@ class Airplane {
   void setAilerons(byte value);  // Set both ailerons
 
   // Setter for trim
-  void setTrim(int value);
-  void adjustTrimUp();
-  void adjustTrimDown();
+  void setElevatorTrim(int value);
+  void setAileronTrim(int value);
+  void setFlaps(int value);
+
+  // Reset trim functions
+  void resetAileronTrim();
+  void resetElevatorTrim();
 
   // Safety setters
   void resetToSafeDefaults();

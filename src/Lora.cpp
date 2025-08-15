@@ -1,19 +1,32 @@
 #include <LoRa.h>
 #include "Common/common.h"
 
-String message = "e0a90r90l90t0#103";
-String recievedMessage = "e0a90r90l90t0#103";
+String message = "e0a90r90l90t0i0f0z0y0#107";
+String recievedMessage = "e0a90r90l90t0i0f0z0y0#107";
 
-int engineRecieved = 0;
-int aileronRecieved = 90;
-int rudderRecieved = 90;
-int elevatorsRecieved = 90;
-int trimRecieved = 0;
-int trimToDisplay = 0;
+int engineReceived = 0;
+int aileronReceived = 90;
+int rudderReceived = 90;
+int elevatorsReceived = 90;
+
+int elevatorTrimReceived = 0;
+int elevatorTrimToDisplay = 0;
+
+int aileronTrimReceived = 0;
+int aileronTrimToDisplay = 0;
+
+int flapsRecieved = 0;
+int flapsToDisplay = 0;
+
+bool resetAileronTrim = false;
+bool resetElevatorTrim = false;
 
 unsigned long lastRecievedTime = millis();
 
 int RSSI = 0;
+
+int RSSIToDisplay;
+int elapsedTimeToDisplay;
 
 void LoRa_rxMode() {
   LoRa.enableInvertIQ();  // active invert I and Q signals
@@ -41,7 +54,7 @@ byte simple_checksum(const byte* data, size_t len) {
   return sum;
 }
 
-int indE, indA, indR, indEL, indT, indHashtag;
+int indE, indA, indR, indEL, indT, indI, indF, indZ, indY, indHashtag;
 
 void onReceive(int packetSize) {
   digitalWrite(BUILTIN_LED, 1);
@@ -58,7 +71,7 @@ void onReceive(int packetSize) {
 
   recievedMessage = message;
 
-  Serial.print("Message: \t" + recievedMessage);
+  // Serial.print("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
     Serial.println("Received message is too short");
@@ -115,42 +128,50 @@ void onReceive(int packetSize) {
     return;
   }
 
-  lastRecievedTime = millis();
+  indI = recievedMessage.indexOf('i');  // 'i' is used for aileron trim
+  if (indI == -1) {
+    Serial.println("No aileron trim data found in the message");
+    return;
+  }
 
-  engineRecieved = recievedMessage.substring(indE + 1, indA).toInt();
-  aileronRecieved = recievedMessage.substring(indA + 1, indR).toInt();
-  rudderRecieved = recievedMessage.substring(indR + 1, indEL).toInt();
-  elevatorsRecieved = recievedMessage.substring(indEL + 1, indT).toInt();
-  trimRecieved = recievedMessage.substring(indT + 1).toInt();
+  indF = recievedMessage.indexOf('f');  // 'f' is used for flaps
+  if (indF == -1) {
+    Serial.println("No flaps data found in the message");
+    return;
+  }
 
-  Serial.print("\tEngine is: " + String(engineRecieved));
-  Serial.print("\tAilerons is: " + String(aileronRecieved));
-  Serial.print("\t\tRudder is: " + String(rudderRecieved));
-  Serial.print("\tElevators is: " + String(elevatorsRecieved));
-  Serial.print("\tTrim is: " + String(trimRecieved));
+  indZ = recievedMessage.indexOf('z');  // 'z' is used for reset aileron trim
+  if (indZ == -1) {
+    Serial.println("No reset aileron trim data found in the message");
+    return;
+  }
+
+  indY = recievedMessage.indexOf('y');  // 'y' is used for reset elevator trim
+  if (indY == -1) {
+    Serial.println("No reset elevator trim data found in the message");
+    return;
+  }
+
+  engineReceived = recievedMessage.substring(indE + 1, indA).toInt();
+  aileronReceived = recievedMessage.substring(indA + 1, indR).toInt();
+  rudderReceived = recievedMessage.substring(indR + 1, indEL).toInt();
+  elevatorsReceived = recievedMessage.substring(indEL + 1, indT).toInt();
+  elevatorTrimReceived = recievedMessage.substring(indT + 1, indI).toInt();
+  aileronTrimReceived = recievedMessage.substring(indI + 1, indF).toInt();
+  flapsRecieved = recievedMessage.substring(indF + 1, indZ).toInt();
+  resetAileronTrim = recievedMessage.substring(indZ + 1, indY).toInt();
+  resetElevatorTrim = recievedMessage.substring(indY + 1).toInt();
 
   RSSI = LoRa.packetRssi();
+  RSSIToDisplay = RSSI;
 
-  Serial.print("\tRSSI: " + String(RSSI));
-
-  Serial.print("\tElapsed: ");
-  Serial.println(millis() - lastRecievedTime);
+  elapsedTimeToDisplay = millis() - lastRecievedTime;
 
   digitalWrite(BUILTIN_LED, 0);
+  lastRecievedTime = millis();
 }
 
 void onTxDone() {
   Serial.println("TxDone");
   LoRa_rxMode();
 }
-
-// #define sliderPin A0
-
-// #define rollIndex 0
-// #define pitchIndex 1
-// #define yawIndex 2
-// #define throttleIndex 3
-// #define autopilotIsOnIndex 4
-// #define trimIndex 5
-
-// #define batteryLevelIndex 0

@@ -8,14 +8,18 @@ void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
 
-  display->drawString(0 + x, 10 + y, String(aileronRecieved));
-  display->drawString(25 + x, 10 + y, String(elevatorsRecieved));
-  display->drawString(50 + x, 10 + y, String(rudderRecieved));
-  display->drawString(75 + x, 10 + y, String(trimToDisplay));
+  display->drawString(0 + x, 10 + y, String(aileronReceived));
+  display->drawString(25 + x, 10 + y, String(elevatorsReceived));
+  display->drawString(50 + x, 10 + y, String(rudderReceived));
+  display->drawString(75 + x, 10 + y, String(elevatorTrimToDisplay));
+  display->drawString(100 + x, 10 + y, String(aileronTrimToDisplay));
 
-  display->drawString(50 + x, 20 + y, String((int)(engineRecieved / 1.8)) + "% Engine");
+  display->drawString(0 + x, 20 + y, String(RSSIToDisplay));
+  display->drawString(25 + x, 20 + y, String(elapsedTimeToDisplay));
 
-  // display->drawString(0 + x, 10 + y, String(analogRead(34)));
+  display->drawString(50 + x, 20 + y, String((int)(engineReceived / 1.8)) + "% Engine");
+
+  display->drawString(50 + x, 30 + y, String(flapsToDisplay));
 
   display->drawXbm(x + 0, y + 36, ps5Icon::xres, ps5Icon::yres, ps5Icon::pixels);
 

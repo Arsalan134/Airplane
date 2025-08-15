@@ -31,35 +31,38 @@ void setup() {
 
 void loop() {
   // Non-blocking display update
-  unsigned long currentTime = millis();
-
-  // Update display at target FPS (30 FPS = 33ms intervals)
-  if (currentTime - lastDisplayUpdate >= 33) {
+  if (millis() - lastDisplayUpdate >= 50) {
     display.update();
-    lastDisplayUpdate = currentTime;
+    lastDisplayUpdate = millis();
   }
 
   if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
-    Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
+    // Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
 
     // Use Airplane class for emergency shutdown
-    airplane.emergencyShutdown();
+    // airplane.emergencyShutdown();
 
     ACS();
     delay(20);
   } else {
-    // Update the controls using Airplane class
-    airplane.setThrottle(engineRecieved);
-    airplane.setAilerons(aileronRecieved);     // Aileron inverted
-    airplane.setTrim(trimRecieved);            // Set trim value
-    airplane.setElevators(elevatorsRecieved);  // Left elevator value (right will be auto-inverted)
-    airplane.setRudder(rudderRecieved);
+    airplane.setThrottle(engineReceived);
+    airplane.setAilerons(aileronReceived);
+    airplane.setElevators(elevatorsReceived);
+    airplane.setRudder(rudderReceived);
+    airplane.setFlaps(flapsRecieved);
+    airplane.setElevatorTrim(elevatorTrimReceived);
+    airplane.setAileronTrim(aileronTrimReceived);
 
+    if (resetAileronTrim)
+      airplane.resetAileronTrim();
+
+    if (resetElevatorTrim)
+      airplane.resetElevatorTrim();
   }
 }
 
 void ACS() {
-  airplane.resetToSafeDefaults();  // Center the servos
+  // airplane.resetToSafeDefaults();  // Center the servos
 }
 
 void setupSD() {}
@@ -89,7 +92,7 @@ void setupRadio() {
 // but that won't give you much time for anything else
 // run it in 160Mhz mode or just set it to 30 fps
 void setupDisplay() {
-  display.setTargetFPS(30);
+  display.setTargetFPS(60);
 
   // Customize the active and inactive symbol
   display.setActiveSymbol(activeSymbol);

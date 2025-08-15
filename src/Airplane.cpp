@@ -29,7 +29,8 @@ Airplane::Airplane() {
   targetElevators = 90;
 
   // Initialize trim
-  trim = 0;
+  elevatorTrim = 0;
+  aileronTrim = 0;
 
   // Initialize safety settings
   lastReceivedTime = millis();
@@ -62,7 +63,7 @@ byte Airplane::getEngine() const {
 }
 
 byte Airplane::getTrim() const {
-  return trim;
+  return elevatorTrim;
 }
 
 // Status getters
@@ -125,7 +126,9 @@ String Airplane::getStatusString() {
   status += "Aileron: " + String(targetRoll) + "\n";
   status += "Rudder: " + String(targetRudder) + "\n";
   status += "Elevators: " + String(targetElevators) + "\n";
-  status += "Trim: " + String(trim) + "\n";
+  status += "Trim: " + String(elevatorTrim) + "\n";
+  status += "Aileron Trim: " + String(aileronTrim) + "\n";
+  status += "Flaps: " + String(flaps) + "\n";
   status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
   status += "Battery: " + String(batteryLevel) + "%";
   return status;
@@ -163,25 +166,46 @@ void Airplane::setThrottle(byte value) {
   }
 }
 
-void Airplane::setTrim(int value) {
+void Airplane::setElevatorTrim(int value) {
   if (value > 0)
-    adjustTrimUp();
+    elevatorTrim += TRIM_STEP;
   else if (value < 0)
-    adjustTrimDown();
+    elevatorTrim -= TRIM_STEP;
 
-  trimRecieved = 0;
+  elevatorTrim = constrain(elevatorTrim, -TRIM_LIMIT, TRIM_LIMIT);
+  elevatorTrimToDisplay = elevatorTrim;  // Update trim for compatibility with Lora
+
+  elevatorTrimReceived = 0;
 }
 
-void Airplane::adjustTrimUp() {
-  trim += TRIM_STEP;
-  trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
-  trimToDisplay = trim;  // Update trim2 for compatibility with Lora
+void Airplane::setAileronTrim(int value) {
+  if (value > 0)
+    aileronTrim += TRIM_STEP;
+  else if (value < 0)
+    aileronTrim -= TRIM_STEP;
+  else
+    return;
+
+  aileronTrim = constrain(aileronTrim, -TRIM_LIMIT, TRIM_LIMIT);
+  aileronTrimToDisplay = aileronTrim;
+
+  aileronTrimReceived = 0;
 }
 
-void Airplane::adjustTrimDown() {
-  trim -= TRIM_STEP;
-  trim = constrain(trim, -TRIM_LIMIT, TRIM_LIMIT);
-  trimToDisplay = trim;  // Update trim2 for compatibility with Lora
+void Airplane::setFlaps(int value) {
+  flaps = constrain(value, -TRIM_LIMIT, TRIM_LIMIT);
+  flapsToDisplay = flaps;
+}
+
+void Airplane::resetAileronTrim() {
+  aileronTrim = 0;
+  aileronTrimToDisplay = aileronTrim;  // Update trim for compatibility with Lora
+  aileronTrimReceived = 0;
+}
+
+void Airplane::resetElevatorTrim() {
+  elevatorTrim = 0;
+  elevatorTrimToDisplay = elevatorTrim;  // Update trim for compatibility with Lora
 }
 
 // =============================================================================
@@ -297,7 +321,7 @@ void Airplane::updateBatteryLevel() {
 }
 
 void Airplane::checkConnectionTimeout() {
-  if (millis() - lastReceivedTime > 2000) {  // 2 second timeout
+  if (millis() - lastReceivedTime > CONNECTION_TIMEOUT) {  // 2 second timeout
     if (connectionActive) {
       connectionActive = false;
       // setEmergencyStop(true);
@@ -331,11 +355,25 @@ void Airplane::resetToSafeDefaults() {
 // }
 
 void Airplane::writeToServos() {
-  engineServo.write(targetEngine);
-  rollLeftMotorServo.write(180 - targetRoll);
-  elevationLeftMotorServo.write(targetElevators + trim);
-  elevationRightMotorServo.write(180 - targetElevators - trim);  // Right elevator inverted
-  rudderMotorServo.write(targetRudder);
+  // Engine
+  engineServo.write(constrain(targetEngine, 0, 180));
+
+  // Ailerons
+  int targetRollForServo = targetRoll;
+  bool shouldApplyAileronTrim = !landingAirbrake;  // emergency landing
+  bool shouldApplyFlaps = abs(targetRollForServo - 90) < 10;
+
+  targetRollForServo += shouldApplyAileronTrim ? aileronTrim : 0;
+  targetRollForServo += shouldApplyFlaps ? flaps * FLAP_ANGLE : 0;
+
+  rollLeftMotorServo.write(constrain(180 - targetRollForServo, 0, 180));  // Left aileron
+
+  // Elevators
+  elevationLeftMotorServo.write(constrain(targetElevators + elevatorTrim, 0, 180));
+  elevationRightMotorServo.write(constrain(180 - targetElevators - elevatorTrim, 0, 180));  // Right elevator inverted
+
+  // Rudder
+  rudderMotorServo.write(constrain(targetRudder, 0, 180));
 
   logControlChanges();
 }

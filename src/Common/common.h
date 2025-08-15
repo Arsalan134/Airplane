@@ -14,13 +14,26 @@ extern OverlayCallback bluetoothOverlays[];
 
 extern String recievedMessage;
 
-extern int engineRecieved;
-extern int aileronRecieved;
-extern int rudderRecieved;
-extern int elevatorsRecieved;
-extern int trimRecieved;
+extern int engineReceived;
+extern int aileronReceived;
+extern int rudderReceived;
 
-extern int trimToDisplay;
+extern int elevatorsReceived;
+
+extern int elevatorTrimReceived;
+extern int elevatorTrimToDisplay;
+
+extern int aileronTrimReceived;
+extern int aileronTrimToDisplay;
+
+extern int flapsRecieved;
+extern int flapsToDisplay;
+
+extern bool resetAileronTrim;
+extern bool resetElevatorTrim;
+
+extern int RSSIToDisplay;
+extern int elapsedTimeToDisplay;
 
 extern unsigned long lastRecievedTime;
 
