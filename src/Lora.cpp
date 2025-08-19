@@ -73,7 +73,7 @@ void onReceive(int packetSize) {
 
   recievedMessage = message;
 
-  Serial.println("Message: \t" + recievedMessage);
+  // Serial.println("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
     Serial.println("Received message is too short");

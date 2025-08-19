@@ -25,8 +25,7 @@ void setup() {
   setupDisplay();
   setupRadio();
 
-  // Initialize airplane with servos
-  airplane.initialize();  // This now handles servo setup
+  airplane.initialize();
 }
 
 void loop() {
