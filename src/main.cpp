@@ -1,6 +1,17 @@
 #include "Header Files/main.h"
 #include "Header Files/Airplane.h"
 
+// Forward declarations
+void printTaskInfo();
+void ACS();
+
+// Task handles for dual-core operation
+TaskHandle_t FlightControlTask;
+TaskHandle_t CommunicationTask;
+
+// Shared data protection
+SemaphoreHandle_t xDataMutex;
+
 // Display
 SSD1306Wire ui(0x3c, SDA, SCL);
 OLEDDisplayUi display(&ui);
@@ -20,47 +31,172 @@ static unsigned long lastDisplayUpdate = 0;
 
 void setup() {
   Serial.begin(115200);
-
-  Serial.println("Starting Airplane Control System...");
+  Serial.println("Starting Dual-Core Airplane Control System...");
+  Serial.println("Setup running on Core: " + String(xPortGetCoreID()));
 
   pinMode(BUILTIN_LED, OUTPUT);
 
+  // Create mutex for shared data protection
+  xDataMutex = xSemaphoreCreateMutex();
+  if (xDataMutex == NULL) {
+    Serial.println("Failed to create mutex!");
+    return;
+  }
+
+  // Initialize systems
   setupDisplay();
   setupRadio();
-
   airplane.initialize();
+
+  // Create tasks for dual-core operation
+  // Core 1: Real-time flight control (high priority)
+  xTaskCreatePinnedToCore(FlightControlTaskCode,  // Task function
+                          "FlightControl",        // Name
+                          10000,                  // Stack size (words)
+                          NULL,                   // Parameters
+                          2,                      // Priority (higher = more important)
+                          &FlightControlTask,     // Task handle
+                          1                       // Core 1
+  );
+
+  // Core 0: Communication and display (lower priority)
+  xTaskCreatePinnedToCore(CommunicationTaskCode,  // Task function
+                          "Communication",        // Name
+                          10000,                  // Stack size (words)
+                          NULL,                   // Parameters
+                          1,                      // Priority
+                          &CommunicationTask,     // Task handle
+                          0                       // Core 0
+  );
+
+  Serial.println("Dual-core tasks created successfully!");
 }
 
 void loop() {
-  // Non-blocking display update
-  if (millis() - lastDisplayUpdate >= 50) {
-    display.update();
-    lastDisplayUpdate = millis();
+  // Main loop now just manages the tasks
+  // Core-specific work is handled by the task functions
+  vTaskDelay(100 / portTICK_PERIOD_MS);  // Small delay to prevent watchdog issues
+}
+
+// =============================================================================
+// CORE 1 TASK: Real-time Flight Control (High Priority)
+// =============================================================================
+void FlightControlTaskCode(void* pvParameters) {
+  Serial.println("Flight Control Task started on Core: " + String(xPortGetCoreID()));
+
+  // Task-specific variables
+  static unsigned long lastControlUpdate = 0;
+  static int controlUpdates = 0;
+
+  while (true) {
+    unsigned long taskStartTime = micros();  // For performance monitoring
+
+    // Take mutex to safely access shared data
+    if (xSemaphoreTake(xDataMutex, 20 / portTICK_PERIOD_MS) == pdTRUE) {
+      // Check for timeout and handle emergency procedures
+      if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
+        // Emergency flight control - critical safety function
+        // Serial.println("[CORE 1] Emergency mode activated!");
+        ACS();
+      } else {
+        // Normal flight control - apply received control inputs
+        airplane.setThrottle(engineReceived);
+        airplane.setAilerons(aileronReceived);
+        airplane.setElevators(elevatorsReceived);
+        airplane.setRudder(rudderReceived);
+        airplane.setFlaps(flapsRecieved);
+        airplane.setElevatorTrim(elevatorTrimReceived);
+        airplane.setAileronTrim(aileronTrimReceived);
+        airplane.setLandingAirbrake(airBrakeReceived);
+
+        // Handle trim resets
+        if (resetAileronTrim)
+          airplane.resetAileronTrim();
+        if (resetElevatorTrim)
+          airplane.resetElevatorTrim();
+      }
+
+      // Update airplane systems
+      airplane.update();
+
+      // Release mutex
+      xSemaphoreGive(xDataMutex);
+
+      controlUpdates++;
+    } else {
+      Serial.println("[CORE 1] Warning: Could not acquire mutex!");
+    }
+
+    // Performance monitoring
+    unsigned long taskDuration = micros() - taskStartTime;
+    if (millis() - lastControlUpdate > 1000) {
+      Serial.println("[CORE 1] Control loop: " + String(controlUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+      controlUpdates = 0;
+      lastControlUpdate = millis();
+    }
+
+    // Run at ~100Hz for responsive flight control
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
+}
 
-  if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
-    // Serial.println("No message received in the last " + String(millis() - lastRecievedTime) + "ms");
+// =============================================================================
+// CORE 0 TASK: Communication and Display (Lower Priority)
+// =============================================================================
+void CommunicationTaskCode(void* pvParameters) {
+  Serial.println("Communication Task started on Core: " + String(xPortGetCoreID()));
 
-    // Use Airplane class for emergency shutdown
-    // airplane.emergencyShutdown();
+  static unsigned long lastDisplayUpdate = 0;
+  static unsigned long lastCommUpdate = 0;
+  static int commUpdates = 0;
 
-    ACS();
-    delay(20);
-  } else {
-    airplane.setThrottle(engineReceived);
-    airplane.setAilerons(aileronReceived);
-    airplane.setElevators(elevatorsReceived);
-    airplane.setRudder(rudderReceived);
-    airplane.setFlaps(flapsRecieved);
-    airplane.setElevatorTrim(elevatorTrimReceived);
-    airplane.setAileronTrim(aileronTrimReceived);
-    airplane.setLandingAirbrake(airBrakeReceived);
+  while (true) {
+    unsigned long taskStartTime = micros();
 
-    if (resetAileronTrim)
-      airplane.resetAileronTrim();
+    // Handle LoRa communication (non-blocking)
+    // LoRa callbacks will handle received data automatically
 
-    if (resetElevatorTrim)
-      airplane.resetElevatorTrim();
+    // Update display at ~20Hz to avoid flickering
+    if (millis() - lastDisplayUpdate >= 50) {
+      display.update();
+      lastDisplayUpdate = millis();
+    }
+
+    // Print performance info periodically
+    printTaskInfo();
+
+    // You can add other communication tasks here:
+    // - WiFi management
+    // - Bluetooth handling
+    // - SD card logging
+    // - Data telemetry
+
+    // Performance monitoring
+    commUpdates++;
+    unsigned long taskDuration = micros() - taskStartTime;
+    if (millis() - lastCommUpdate > 1000) {
+      Serial.println("[CORE 0] Communication: " + String(commUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+      commUpdates = 0;
+      lastCommUpdate = millis();
+    }
+
+    // Run at ~50Hz - adequate for communication and display
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+  }
+}
+
+// =============================================================================
+// PERFORMANCE MONITORING
+// =============================================================================
+void printTaskInfo() {
+  static unsigned long lastPrint = 0;
+  if (millis() - lastPrint > 5000) {  // Print every 5 seconds
+    Serial.println("=== DUAL-CORE PERFORMANCE ===");
+    Serial.println("Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
+    Serial.print("Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
+    Serial.println(" | Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
+    Serial.println("=============================");
+    lastPrint = millis();
   }
 }
 

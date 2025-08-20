@@ -253,13 +253,24 @@ void Airplane::initializeEngines() {
   Serial.println("Engines Test Starting...");
 
   // Attach servo with proper PWM range for ESC
-  engineServos.attach(ENGINE_PIN, -1, 0, 180, 1000, 2000);
+  engineServos.attach(ENGINE_PIN, 1000, 2000);
 
   Serial.println("Engines initialized successfully");
 }
 
 void Airplane::update() {
   checkConnectionTimeout();
+
+  // Core-specific performance logging
+  static unsigned long lastUpdate = 0;
+  static int updateCount = 0;
+  updateCount++;
+
+  if (millis() - lastUpdate > 1000) {
+    Serial.println("Flight Control Updates/sec: " + String(updateCount) + " (Core: " + String(xPortGetCoreID()) + ")");
+    updateCount = 0;
+    lastUpdate = millis();
+  }
 }
 
 void Airplane::emergencyShutdown() {

@@ -1,6 +1,10 @@
 #include <Arduino.h>
 #include "Common/common.h"
 
+// Dual-Core Task Management
+void FlightControlTaskCode(void* pvParameters);
+void CommunicationTaskCode(void* pvParameters);
+
 // SD Card
 #include "SD-Card.h"
 void setupSD();
@@ -28,6 +32,8 @@ boolean timeout = false;
  * Active Control System
  */
 void ACS();
+
+void printTaskInfo();
 
 // #include <Servo.h>
 // #include <printf.h>

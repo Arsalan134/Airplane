@@ -2,7 +2,7 @@
 #define AIRPLANE_H
 
 #include <Arduino.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 // Servo pin definitions
 #define ENGINE_PIN 4
