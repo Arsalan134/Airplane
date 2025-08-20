@@ -39,12 +39,4 @@ extern int elapsedTimeToDisplay;
 
 extern unsigned long lastRecievedTime;
 
-#define ENGINE_PIN 4
-
-#define ROLL_LEFT_MOTOR_PIN 12
-// #define ROLL_RIGHT_MOTOR_PIN 0
-#define ELEVATION_LEFT_MOTOR_PIN 13
-#define ELEVATION_RIGHT_MOTOR_PIN 2
-#define RUDDER_MOTOR_PIN 15
-
 #define timeoutInMilliSeconds 1000  // 1 second

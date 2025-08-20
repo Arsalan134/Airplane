@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <ESP32Servo.h>
 #include "Common/common.h"
 
 // SD Card

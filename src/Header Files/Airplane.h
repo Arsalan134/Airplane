@@ -2,7 +2,7 @@
 #define AIRPLANE_H
 
 #include <Arduino.h>
-#include <ESP32Servo.h>
+#include <Servo.h>
 
 enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };
 

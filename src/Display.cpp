@@ -1,4 +1,4 @@
-#include "Header Files\Display.h"
+#include "Header Files/Display.h"
 #include "Common/common.h"
 
 // draw an xbm image.
