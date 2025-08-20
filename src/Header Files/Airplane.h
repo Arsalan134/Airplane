@@ -6,10 +6,10 @@
 
 // Servo pin definitions
 #define ENGINE_PIN 4
-#define ROLL_LEFT_MOTOR_PIN 12
-#define ELEVATION_LEFT_MOTOR_PIN 13
-#define ELEVATION_RIGHT_MOTOR_PIN 2
-#define RUDDER_MOTOR_PIN 15
+#define ROLL_LEFT_MOTOR_PIN 12       // green cable
+#define ELEVATION_LEFT_MOTOR_PIN 13  // blue cable
+#define ELEVATION_RIGHT_MOTOR_PIN 2  // blue cable
+#define RUDDER_MOTOR_PIN 15          // yellow cable
 
 #define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
 #define TRIM_LIMIT 45              // 45 degrees up and down
@@ -72,7 +72,6 @@ class Airplane {
   void checkConnectionTimeout();
   bool isValidControlValue(byte value);
   void logControlChanges();
-  // byte mapAngleToServo(float angle);
   void writeToServos();
 
  public:

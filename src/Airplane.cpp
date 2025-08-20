@@ -229,48 +229,6 @@ void Airplane::setYawAngle(float degrees) {
 }
 
 // =============================================================================
-// SAFETY AND CONNECTION SETTERS
-// =============================================================================
-
-void Airplane::updateLastReceivedTime() {
-  lastReceivedTime = millis();
-  connectionActive = true;
-}
-
-void Airplane::setConnectionStatus(bool active) {
-  connectionActive = active;
-}
-
-// =============================================================================
-// FLIGHT MODE SETTERS
-// =============================================================================
-
-void Airplane::setFlightMode(FlightMode mode) {
-  currentFlightMode = mode;
-  Serial.println("Flight mode set to: " + getFlightModeString());
-}
-
-// =============================================================================
-// COMBINED MANEUVER FUNCTIONS
-// =============================================================================
-
-void Airplane::performLevel() {
-  setRollAngle(0);
-  setPitchAngle(0);
-  setYawAngle(0);
-  Serial.println("Performing level flight");
-}
-
-void Airplane::performLanding(float glidePath) {
-  setFlightMode(FlightMode::LANDING);
-  setPitchAngle(glidePath);
-  setThrottle(25);  // Low throttle for landing
-  Serial.print("Performing landing approach at ");
-  Serial.print(glidePath);
-  Serial.println(" degree glide path");
-}
-
-// =============================================================================
 // PUBLIC UTILITY FUNCTIONS
 // =============================================================================
 
@@ -327,13 +285,6 @@ void Airplane::resetToSafeDefaults() {
   writeToServos();
 }
 
-// byte Airplane::mapAngleToServo(float angle) {
-//   // Map angle (-45 to +45 degrees) to servo range (0 to 180)
-//   // Center position is 90 degrees
-//   int servoValue = 90 + (angle * 2);  // Scale angle to servo range
-//   return constrain(servoValue, 0, 180);
-// }
-
 void Airplane::writeToServos() {
   // Engine
   engineServo.write(constrain(targetEngine, 0, 180));
@@ -376,4 +327,46 @@ void Airplane::logControlChanges() {
   // Serial.print(currentPitchAngle);
   // Serial.print(" Yaw:");
   // Serial.println(currentYawAngle);
+}
+
+// =============================================================================
+// SAFETY AND CONNECTION SETTERS
+// =============================================================================
+
+void Airplane::updateLastReceivedTime() {
+  lastReceivedTime = millis();
+  connectionActive = true;
+}
+
+void Airplane::setConnectionStatus(bool active) {
+  connectionActive = active;
+}
+
+// =============================================================================
+// FLIGHT MODE SETTERS
+// =============================================================================
+
+void Airplane::setFlightMode(FlightMode mode) {
+  currentFlightMode = mode;
+  Serial.println("Flight mode set to: " + getFlightModeString());
+}
+
+// =============================================================================
+// COMBINED MANEUVER FUNCTIONS
+// =============================================================================
+
+void Airplane::performLevel() {
+  setRollAngle(0);
+  setPitchAngle(0);
+  setYawAngle(0);
+  Serial.println("Performing level flight");
+}
+
+void Airplane::performLanding(float glidePath) {
+  setFlightMode(FlightMode::LANDING);
+  setPitchAngle(glidePath);
+  setThrottle(25);  // Low throttle for landing
+  Serial.print("Performing landing approach at ");
+  Serial.print(glidePath);
+  Serial.println(" degree glide path");
 }
