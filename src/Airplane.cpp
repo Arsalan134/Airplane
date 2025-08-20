@@ -35,7 +35,6 @@ Airplane::Airplane() {
   // Initialize safety settings
   lastReceivedTime = millis();
   connectionActive = false;
-  batteryLevel = 0;
 
   // Initialize flight modes
   currentFlightMode = FlightMode::STABILITY;
@@ -64,11 +63,6 @@ byte Airplane::getEngine() const {
 
 byte Airplane::getTrim() const {
   return elevatorTrim;
-}
-
-// Status getters
-byte Airplane::getBatteryLevel() const {
-  return batteryLevel;
 }
 
 bool Airplane::isConnectionActive() const {
@@ -130,7 +124,6 @@ String Airplane::getStatusString() {
   status += "Aileron Trim: " + String(aileronTrim) + "\n";
   status += "Flaps: " + String(flaps) + "\n";
   status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
-  status += "Battery: " + String(batteryLevel) + "%";
   return status;
 }
 
@@ -284,7 +277,6 @@ void Airplane::performLanding(float glidePath) {
 void Airplane::initialize() {
   initializeServos();
   resetToSafeDefaults();
-  updateBatteryLevel();
   Serial.println("Airplane initialized");
 }
 
@@ -300,28 +292,12 @@ void Airplane::initializeServos() {
 
 void Airplane::update() {
   checkConnectionTimeout();
-  updateBatteryLevel();
 }
 
 void Airplane::emergencyShutdown() {
   resetToSafeDefaults();  // Center all controls
   Serial.println("Emergency shutdown executed");
   delay(100);
-}
-
-void Airplane::updateBatteryLevel() {
-  // Read battery voltage and convert to percentage
-  // int analogValue = analogRead(A0); // Assuming battery connected to A0
-  // if (analogValue < minAnalogReadFromBattery) {
-  //   batteryLevel = 0;
-  // } else if (analogValue > maxAnalogReadFromBattery) {
-  //   batteryLevel = 100;
-  // } else {
-  //   batteryLevel = map(analogValue, minAnalogReadFromBattery, maxAnalogReadFromBattery, 0, 100);
-  // }
-
-  // Placeholder for now
-  batteryLevel = 85;
 }
 
 void Airplane::checkConnectionTimeout() {

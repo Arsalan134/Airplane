@@ -38,5 +38,3 @@ extern int RSSIToDisplay;
 extern int elapsedTimeToDisplay;
 
 extern unsigned long lastRecievedTime;
-
-#define timeoutInMilliSeconds 1000  // 1 second

@@ -4,6 +4,22 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+// Servo pin definitions
+#define ENGINE_PIN 4
+#define ROLL_LEFT_MOTOR_PIN 12
+#define ELEVATION_LEFT_MOTOR_PIN 13
+#define ELEVATION_RIGHT_MOTOR_PIN 2
+#define RUDDER_MOTOR_PIN 15
+
+#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
+#define TRIM_LIMIT 45              // 45 degrees up and down
+#define TRIM_STEP 2
+#define FLAP_ANGLE 10
+
+#define CONNECTION_TIMEOUT 2000
+
+#define timeoutInMilliSeconds 1000  // 1 second
+
 enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };
 
 class Airplane {
@@ -34,30 +50,11 @@ class Airplane {
   Servo elevationRightMotorServo;
   Servo rudderMotorServo;
 
-// Servo pin definitions
-#define ENGINE_PIN 4
-#define ROLL_LEFT_MOTOR_PIN 12
-#define ELEVATION_LEFT_MOTOR_PIN 13
-#define ELEVATION_RIGHT_MOTOR_PIN 2
-#define RUDDER_MOTOR_PIN 15
-
-#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
-#define TRIM_LIMIT 45              // 45 degrees up and down
-#define TRIM_STEP 2
-#define FLAP_ANGLE 10
-
-#define CONNECTION_TIMEOUT 2000
-
   // Trim settings
   int elevatorTrim = 0;
   int aileronTrim = 0;
   int flaps = 0;
   bool landingAirbrake = false;
-
-  // Battery monitoring
-  int batteryLevel;
-#define MIN_ANALOG_READ_FROM_BATTERY 750
-#define MAX_ANALOG_READ_FROM_BATTERY 1000
 
   // Safety and status
   unsigned long lastReceivedTime;
@@ -72,7 +69,6 @@ class Airplane {
   FlightMode currentFlightMode;
 
   // Private helper functions
-  void updateBatteryLevel();
   void checkConnectionTimeout();
   bool isValidControlValue(byte value);
   void logControlChanges();
@@ -124,7 +120,6 @@ class Airplane {
   byte getElevators() const;
   byte getEngine() const;
   byte getTrim() const;
-  byte getBatteryLevel() const;
   bool isConnectionActive() const;
   unsigned long getLastReceivedTime() const;
 
