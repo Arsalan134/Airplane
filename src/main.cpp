@@ -51,7 +51,7 @@ void setup() {
   // Create tasks for dual-core operation
   // Core 1: Real-time flight control (high priority)
   xTaskCreatePinnedToCore(FlightControlTaskCode,  // Task function
-                          "FlightControl",        // Name
+                          "Flight Control",       // Name
                           10000,                  // Stack size (words)
                           NULL,                   // Parameters
                           2,                      // Priority (higher = more important)
