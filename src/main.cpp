@@ -20,6 +20,9 @@ static unsigned long lastDisplayUpdate = 0;
 
 void setup() {
   Serial.begin(115200);
+
+  Serial.println("Starting Airplane Control System...");
+
   pinMode(BUILTIN_LED, OUTPUT);
 
   setupDisplay();

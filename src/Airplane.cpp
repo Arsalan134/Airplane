@@ -234,18 +234,28 @@ void Airplane::setYawAngle(float degrees) {
 
 void Airplane::initialize() {
   initializeServos();
+  initializeEngines();
   resetToSafeDefaults();
+
   Serial.println("Airplane initialized");
 }
 
 void Airplane::initializeServos() {
-  engineServo.attach(ENGINE_PIN, 1000, 2000);
   rollLeftMotorServo.attach(ROLL_LEFT_MOTOR_PIN);
   elevationLeftMotorServo.attach(ELEVATION_LEFT_MOTOR_PIN);
   elevationRightMotorServo.attach(ELEVATION_RIGHT_MOTOR_PIN);
   rudderMotorServo.attach(RUDDER_MOTOR_PIN);
 
-  Serial.println("Servos initialized");
+  Serial.println("Servos initialized successfully");
+}
+
+void Airplane::initializeEngines() {
+  Serial.println("Engines Test Starting...");
+
+  // Attach servo with proper PWM range for ESC
+  engineServos.attach(ENGINE_PIN, -1, 0, 180, 1000, 2000);
+
+  Serial.println("Engines initialized successfully");
 }
 
 void Airplane::update() {
@@ -287,7 +297,7 @@ void Airplane::resetToSafeDefaults() {
 
 void Airplane::writeToServos() {
   // Engine
-  engineServo.write(constrain(targetEngine, 0, 180));
+  engineServos.write(constrain(targetEngine, 0, 180));
 
   // Ailerons
   int targetRollForServo = targetRoll;

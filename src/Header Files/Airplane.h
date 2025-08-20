@@ -32,6 +32,7 @@ class Airplane {
 
   // Servo initialization
   void initializeServos();
+  void initializeEngines();
 
   // Delete copy constructor and assignment operator
   Airplane(const Airplane&) = delete;
@@ -41,10 +42,11 @@ class Airplane {
   byte targetRoll;
   byte targetRudder;
   byte targetElevators;
+  /// @brief Target engine throttle (0-100%) from 0 to 180
   byte targetEngine;
 
   // Servo objects
-  Servo engineServo;
+  Servo engineServos;
   Servo rollLeftMotorServo;
   Servo elevationLeftMotorServo;
   Servo elevationRightMotorServo;
