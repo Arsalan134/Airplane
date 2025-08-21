@@ -79,9 +79,9 @@ void printSystemInfo() {
   Serial.println("╔══════════════════════════════════════╗");
   Serial.println("║        🛩️ SYSTEM INFORMATION         ║");
   Serial.println("╠══════════════════════════════════════╣");
-  Serial.println("║ Project: ESP32 Airplane Control     ║");
-  Serial.println("║ Target:  ESP32-PICO-D4              ║");
-  Serial.println("║ Framework: Arduino + PlatformIO     ║");
+  Serial.println("║ Project: ESP32 Airplane Control      ║");
+  Serial.println("║ Target:  ESP32-PICO-D4               ║");
+  Serial.println("║ Framework: Arduino + PlatformIO      ║");
   Serial.println("║ Test Framework: Unity                ║");
   Serial.println("╚══════════════════════════════════════╝");
 }
