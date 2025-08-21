@@ -2,7 +2,7 @@
 #include "Common/common.h"
 
 // =============================================================================
-// STATIC MEMBERS AND SINGLETON IMPLEMENTATION
+// STATIC MEMBERS AND SINGLETON IMPLEMENTATION ✈️
 // =============================================================================
 
 // Initialize static instance pointer
@@ -17,7 +17,7 @@ Airplane& Airplane::getInstance() {
 }
 
 // =============================================================================
-// CONSTRUCTOR
+// CONSTRUCTOR 🏗️
 // =============================================================================
 
 // Private constructor
@@ -41,55 +41,14 @@ Airplane::Airplane() {
 }
 
 // =============================================================================
-// GETTERS (CONST FUNCTIONS)
+// GETTERS (CONST FUNCTIONS) 📊
 // =============================================================================
-
-// Basic control getters
-byte Airplane::getAileron() const {
-  return targetRoll;
-}
-
-byte Airplane::getRudder() const {
-  return targetRudder;
-}
-
-byte Airplane::getElevators() const {
-  return targetElevators;
-}
-
-byte Airplane::getEngine() const {
-  return targetEngine;
-}
-
-byte Airplane::getTrim() const {
-  return elevatorTrim;
-}
 
 bool Airplane::isConnectionActive() const {
   return connectionActive;
 }
 
-unsigned long Airplane::getLastReceivedTime() const {
-  return lastReceivedTime;
-}
-
 // High-level flight parameter getters
-float Airplane::getRollAngle() const {
-  return currentRollAngle;
-}
-
-float Airplane::getPitchAngle() const {
-  return currentPitchAngle;
-}
-
-float Airplane::getYawAngle() const {
-  return currentYawAngle;
-}
-
-float Airplane::getThrottle() const {
-  return targetEngine;
-}
-
 FlightMode Airplane::getFlightMode() const {
   return currentFlightMode;
 }
@@ -97,15 +56,15 @@ FlightMode Airplane::getFlightMode() const {
 String Airplane::getFlightModeString() const {
   switch (currentFlightMode) {
     case FlightMode::LANDING:
-      return "Landing";
+      return "🛬 Landing";
     case FlightMode::ACROBATIC:
-      return "Acrobatic";
+      return "🎢 Acrobatic";
     case FlightMode::STABILITY:
-      return "Stability";
+      return "📐 Stability";
     case FlightMode::MANUAL:
-      return "Manual";
+      return "🎮 Manual";
     default:
-      return "Unknown";
+      return "❓ Unknown";
   }
 }
 
@@ -115,20 +74,20 @@ bool Airplane::isControlInputValid() {
 }
 
 String Airplane::getStatusString() {
-  String status = "Airplane Status:\n";
-  status += "Engine: " + String(targetEngine) + "\n";
-  status += "Aileron: " + String(targetRoll) + "\n";
-  status += "Rudder: " + String(targetRudder) + "\n";
-  status += "Elevators: " + String(targetElevators) + "\n";
-  status += "Trim: " + String(elevatorTrim) + "\n";
-  status += "Aileron Trim: " + String(aileronTrim) + "\n";
-  status += "Flaps: " + String(flaps) + "\n";
-  status += "Connection: " + String(connectionActive ? "Active" : "Inactive") + "\n";
+  String status = "✈️ Airplane Status:\n";
+  status += "⚡ Engine: " + String(targetEngine) + "\n";
+  status += "🛩️ Aileron: " + String(targetRoll) + "\n";
+  status += "🎯 Rudder: " + String(targetRudder) + "\n";
+  status += "⬆️⬇️ Elevators: " + String(targetElevators) + "\n";
+  status += "🔧 Trim: " + String(elevatorTrim) + "\n";
+  status += "🔧 Aileron Trim: " + String(aileronTrim) + "\n";
+  status += "🪶 Flaps: " + String(flaps) + "\n";
+  status += "📡 Connection: " + String(connectionActive ? "🟢 Active" : "🔴 Inactive") + "\n";
   return status;
 }
 
 // =============================================================================
-// BASIC SETTERS (LOW-LEVEL CONTROL)
+// BASIC SETTERS (LOW-LEVEL CONTROL) 🎮
 // =============================================================================
 
 void Airplane::setElevators(byte value) {
@@ -206,7 +165,7 @@ void Airplane::setLandingAirbrake(bool active) {
 }
 
 // =============================================================================
-// HIGH-LEVEL SETTERS (FLIGHT CONTROL)
+// HIGH-LEVEL SETTERS (FLIGHT CONTROL) 🛩️
 // =============================================================================
 
 // TODO:- Need to rethink this part and degrees
@@ -229,7 +188,7 @@ void Airplane::setYawAngle(float degrees) {
 }
 
 // =============================================================================
-// PUBLIC UTILITY FUNCTIONS
+// PUBLIC UTILITY FUNCTIONS 🔧
 // =============================================================================
 
 void Airplane::initialize() {
@@ -237,7 +196,7 @@ void Airplane::initialize() {
   initializeEngines();
   resetToSafeDefaults();
 
-  Serial.println("Airplane initialized");
+  Serial.println("✅ Airplane initialized");
 }
 
 void Airplane::initializeServos() {
@@ -246,16 +205,16 @@ void Airplane::initializeServos() {
   elevationRightMotorServo.attach(ELEVATION_RIGHT_MOTOR_PIN);
   rudderMotorServo.attach(RUDDER_MOTOR_PIN);
 
-  Serial.println("Servos initialized successfully");
+  Serial.println("🔧 Servos initialized successfully");
 }
 
 void Airplane::initializeEngines() {
-  Serial.println("Engines Test Starting...");
+  Serial.println("⚡ Engines Test Starting...");
 
   // Attach servo with proper PWM range for ESC
   engineServos.attach(ENGINE_PIN, 1000, 2000);
 
-  Serial.println("Engines initialized successfully");
+  Serial.println("🚀 Engines initialized successfully");
 }
 
 void Airplane::update() {
@@ -267,7 +226,7 @@ void Airplane::update() {
   updateCount++;
 
   if (millis() - lastUpdate > 1000) {
-    Serial.println("Flight Control Updates/sec: " + String(updateCount) + " (Core: " + String(xPortGetCoreID()) + ")");
+    Serial.println("📊 Flight Control Updates/sec: " + String(updateCount) + " (Core: " + String(xPortGetCoreID()) + ")");
     updateCount = 0;
     lastUpdate = millis();
   }
@@ -275,7 +234,7 @@ void Airplane::update() {
 
 void Airplane::emergencyShutdown() {
   resetToSafeDefaults();  // Center all controls
-  Serial.println("Emergency shutdown executed");
+  Serial.println("🚨 Emergency shutdown executed");
   delay(100);
 }
 
@@ -284,7 +243,7 @@ void Airplane::checkConnectionTimeout() {
     if (connectionActive) {
       connectionActive = false;
       // setEmergencyStop(true);
-      Serial.println("Connection timeout - Emergency stop activated");
+      Serial.println("⚠️ Connection timeout - Emergency stop activated");
     }
   }
 }

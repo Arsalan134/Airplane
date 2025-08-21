@@ -4,27 +4,25 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
 
-// Servo pin definitions
+// 🔌 Servo pin definitions
 #define ENGINE_PIN 4
-#define ROLL_LEFT_MOTOR_PIN 12       // green cable
-#define ELEVATION_LEFT_MOTOR_PIN 13  // blue cable
-#define ELEVATION_RIGHT_MOTOR_PIN 2  // blue cable
-#define RUDDER_MOTOR_PIN 15          // yellow cable
+#define ROLL_LEFT_MOTOR_PIN 12       // green cable 🟢
+#define ELEVATION_LEFT_MOTOR_PIN 13  // blue cable 🔵
+#define ELEVATION_RIGHT_MOTOR_PIN 2  // blue cable 🔵
+#define RUDDER_MOTOR_PIN 15          // yellow cable 🟡
 
-#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right
-#define TRIM_LIMIT 45              // 45 degrees up and down
+#define rudderHalfAngleFreedom 30  // 30 degrees to the left and right 🎯
+#define TRIM_LIMIT 45              // 45 degrees up and down ⬆️⬇️
 #define TRIM_STEP 2
-#define FLAP_ANGLE 10
+#define FLAP_ANGLE 10  // 🪶
 
-#define CONNECTION_TIMEOUT 2000
+#define CONNECTION_TIMEOUT 2000  // ⏱️
 
-#define timeoutInMilliSeconds 1000  // 1 second
-
-enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };
+enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };  // 🛩️
 
 class Airplane {
  private:
-  // Singleton instance
+  // 🔒 Singleton instance
   static Airplane* instance;
 
   // Private constructor for singleton
@@ -38,11 +36,11 @@ class Airplane {
   Airplane(const Airplane&) = delete;
   Airplane& operator=(const Airplane&) = delete;
 
-  // Flight control surfaces
+  // 🛩️ Flight control surfaces
   byte targetRoll;
   byte targetRudder;
   byte targetElevators;
-  /// @brief Target engine throttle (0-100%) from 0 to 180
+  /// @brief Target engine throttle (0-100%) from 0 to 180 ⚡
   byte targetEngine;
 
   // Servo objects
@@ -80,23 +78,30 @@ class Airplane {
   // Singleton instance getter
   static Airplane& getInstance();
 
-  // Setters for flight controls
-  void setThrottle(byte value);  // Engine throttle 0-100% | 0 - 180
-  void setRudder(byte value);
-  void setElevators(byte value);
-  void setAilerons(byte value);  // Set both ailerons
+  // Public utility functions
+  void initialize();
+  void update();
+  bool isControlInputValid();
+  void emergencyShutdown();
+  String getStatusString();
 
-  // Setter for trim
+  // 🔧 Setters for flight controls
+  void setThrottle(byte value);   // Engine throttle 0-100% | 0 - 180 ⚡
+  void setRudder(byte value);     // 🎯
+  void setElevators(byte value);  // ⬆️⬇️
+  void setAilerons(byte value);   // Set both ailerons 🛩️
+
+  // 🔧 Setter for trim
   void setElevatorTrim(int value);
   void setAileronTrim(int value);
-  void setFlaps(int value);
-  void setLandingAirbrake(bool active);
+  void setFlaps(int value);              // 🪶
+  void setLandingAirbrake(bool active);  // 🛑
 
-  // Reset trim functions
+  // 🔄 Reset trim functions
   void resetAileronTrim();
   void resetElevatorTrim();
 
-  // Safety setters
+  // ⚡ Safety setters
   void resetToSafeDefaults();
   void updateLastReceivedTime();
   void setConnectionStatus(bool active);
@@ -116,28 +121,11 @@ class Airplane {
   void setFlightMode(FlightMode mode);  // Set flight mode
 
   // Getters
-  byte getAileron() const;
-  byte getRudder() const;
-  byte getElevators() const;
-  byte getEngine() const;
-  byte getTrim() const;
   bool isConnectionActive() const;
-  unsigned long getLastReceivedTime() const;
 
   // High-level getters
-  float getRollAngle() const;
-  float getPitchAngle() const;
-  float getYawAngle() const;
-  float getThrottle() const;
   FlightMode getFlightMode() const;
   String getFlightModeString() const;
-
-  // Public utility functions
-  void initialize();
-  void update();
-  bool isControlInputValid();
-  void emergencyShutdown();
-  String getStatusString();
 };
 
 #endif  // AIRPLANE_H

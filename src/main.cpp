@@ -31,15 +31,15 @@ static unsigned long lastDisplayUpdate = 0;
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Starting Dual-Core Airplane Control System...");
-  Serial.println("Setup running on Core: " + String(xPortGetCoreID()));
+  Serial.println("✈️ Starting Dual-Core Airplane Control System... 🚁");
+  Serial.println("🔧 Setup running on Core: " + String(xPortGetCoreID()));
 
   pinMode(BUILTIN_LED, OUTPUT);
 
   // Create mutex for shared data protection
   xDataMutex = xSemaphoreCreateMutex();
   if (xDataMutex == NULL) {
-    Serial.println("Failed to create mutex!");
+    Serial.println("❌ Failed to create mutex!");
     return;
   }
 
@@ -69,7 +69,7 @@ void setup() {
                           0                       // Core 0
   );
 
-  Serial.println("Dual-core tasks created successfully!");
+  Serial.println("🚀 Dual-core tasks created successfully! 🎯");
 }
 
 void loop() {
@@ -79,10 +79,10 @@ void loop() {
 }
 
 // =============================================================================
-// CORE 1 TASK: Real-time Flight Control (High Priority)
+// CORE 1 TASK: Real-time Flight Control (High Priority) 🛩️
 // =============================================================================
 void FlightControlTaskCode(void* pvParameters) {
-  Serial.println("Flight Control Task started on Core: " + String(xPortGetCoreID()));
+  Serial.println("🎮 Flight Control Task started on Core: " + String(xPortGetCoreID()));
 
   // Task-specific variables
   static unsigned long lastControlUpdate = 0;
@@ -94,26 +94,12 @@ void FlightControlTaskCode(void* pvParameters) {
     // Take mutex to safely access shared data
     if (xSemaphoreTake(xDataMutex, 20 / portTICK_PERIOD_MS) == pdTRUE) {
       // Check for timeout and handle emergency procedures
-      if (millis() - lastRecievedTime >= timeoutInMilliSeconds) {
+      if (millis() - lastReceivedTime >= CONNECTION_TIMEOUT) {
         // Emergency flight control - critical safety function
-        // Serial.println("[CORE 1] Emergency mode activated!");
+        // Serial.println("[CORE 1] 🚨 Emergency mode activated!");
         ACS();
       } else {
-        // Normal flight control - apply received control inputs
-        airplane.setThrottle(engineReceived);
-        airplane.setAilerons(aileronReceived);
-        airplane.setElevators(elevatorsReceived);
-        airplane.setRudder(rudderReceived);
-        airplane.setFlaps(flapsRecieved);
-        airplane.setElevatorTrim(elevatorTrimReceived);
-        airplane.setAileronTrim(aileronTrimReceived);
-        airplane.setLandingAirbrake(airBrakeReceived);
-
-        // Handle trim resets
-        if (resetAileronTrim)
-          airplane.resetAileronTrim();
-        if (resetElevatorTrim)
-          airplane.resetElevatorTrim();
+        sendDataToAirplane();
       }
 
       // Update airplane systems
@@ -124,13 +110,13 @@ void FlightControlTaskCode(void* pvParameters) {
 
       controlUpdates++;
     } else {
-      Serial.println("[CORE 1] Warning: Could not acquire mutex!");
+      Serial.println("[CORE 1] ⚠️ Warning: Could not acquire mutex!");
     }
 
     // Performance monitoring
     unsigned long taskDuration = micros() - taskStartTime;
     if (millis() - lastControlUpdate > 1000) {
-      Serial.println("[CORE 1] Control loop: " + String(controlUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+      Serial.println("[CORE 1] 📊 Control loop: " + String(controlUpdates) + " Hz, avg " + String(taskDuration) + "μs");
       controlUpdates = 0;
       lastControlUpdate = millis();
     }
@@ -141,10 +127,10 @@ void FlightControlTaskCode(void* pvParameters) {
 }
 
 // =============================================================================
-// CORE 0 TASK: Communication and Display (Lower Priority)
+// CORE 0 TASK: Communication and Display (Lower Priority) 📡
 // =============================================================================
 void CommunicationTaskCode(void* pvParameters) {
-  Serial.println("Communication Task started on Core: " + String(xPortGetCoreID()));
+  Serial.println("📻 Communication Task started on Core: " + String(xPortGetCoreID()));
 
   static unsigned long lastDisplayUpdate = 0;
   static unsigned long lastCommUpdate = 0;
@@ -156,14 +142,12 @@ void CommunicationTaskCode(void* pvParameters) {
     // Handle LoRa communication (non-blocking)
     // LoRa callbacks will handle received data automatically
 
-    // Update display at ~20Hz to avoid flickering
-    if (millis() - lastDisplayUpdate >= 50) {
+    if (millis() - lastDisplayUpdate >= 50) {  // Update display at ~20Hz to avoid flickering
       display.update();
       lastDisplayUpdate = millis();
     }
 
-    // Print performance info periodically
-    printTaskInfo();
+    printTaskInfo();  // Print performance info periodically
 
     // You can add other communication tasks here:
     // - WiFi management
@@ -174,28 +158,44 @@ void CommunicationTaskCode(void* pvParameters) {
     // Performance monitoring
     commUpdates++;
     unsigned long taskDuration = micros() - taskStartTime;
+
     if (millis() - lastCommUpdate > 1000) {
-      Serial.println("[CORE 0] Communication: " + String(commUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+      Serial.println("[CORE 0] 📡 Communication: " + String(commUpdates) + " Hz, avg " + String(taskDuration) + "μs");
       commUpdates = 0;
       lastCommUpdate = millis();
     }
 
-    // Run at ~50Hz - adequate for communication and display
-    vTaskDelay(20 / portTICK_PERIOD_MS);
+    vTaskDelay(20 / portTICK_PERIOD_MS);  // Run at ~50Hz - adequate for communication and display
   }
 }
 
+void sendDataToAirplane() {
+  airplane.setThrottle(engineReceived);
+  airplane.setAilerons(aileronReceived);
+  airplane.setElevators(elevatorsReceived);
+  airplane.setRudder(rudderReceived);
+  airplane.setFlaps(flapsRecieved);
+  airplane.setElevatorTrim(elevatorTrimReceived);
+  airplane.setAileronTrim(aileronTrimReceived);
+  airplane.setLandingAirbrake(airBrakeReceived);
+
+  if (resetAileronTrim)
+    airplane.resetAileronTrim();
+  if (resetElevatorTrim)
+    airplane.resetElevatorTrim();
+}
+
 // =============================================================================
-// PERFORMANCE MONITORING
+// PERFORMANCE MONITORING 🔍
 // =============================================================================
 void printTaskInfo() {
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint > 5000) {  // Print every 5 seconds
-    Serial.println("=== DUAL-CORE PERFORMANCE ===");
-    Serial.println("Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
-    Serial.print("Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
-    Serial.println(" | Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
-    Serial.println("=============================");
+    Serial.println("=== 🚀 DUAL-CORE PERFORMANCE 📈 ===");
+    Serial.println("💾 Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
+    Serial.print("🎯 Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
+    Serial.println(" | 📻 Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
+    Serial.println("===============================");
     lastPrint = millis();
   }
 }
@@ -210,16 +210,16 @@ void setupRadio() {
   LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 
   while (!LoRa.begin(frequency)) {
-    Serial.println("LoRa init failed. Check your connections.");
+    Serial.println("❌ LoRa init failed. Check your connections.");
     delay(200);
   }
 
-  Serial.println("LoRa init succeeded.");
+  Serial.println("✅ LoRa init succeeded.");
   Serial.println();
-  Serial.println("LoRa Simple Node");
-  Serial.println("Only receive messages from gateways");
-  Serial.println("Tx: invertIQ disable");
-  Serial.println("Rx: invertIQ enable");
+  Serial.println("📡 LoRa Simple Node");
+  Serial.println("📥 Only receive messages from gateways");
+  Serial.println("📤 Tx: invertIQ disable");
+  Serial.println("📥 Rx: invertIQ enable");
   Serial.println();
 
   LoRa.onReceive(onReceive);
@@ -229,7 +229,7 @@ void setupRadio() {
 
 // The ESP is capable of rendering 60fps in 80Mhz mode
 // but that won't give you much time for anything else
-// run it in 160Mhz mode or just set it to 30 fps
+// run it in 160Mhz mode or just set it to 30 fps 🖥️
 void setupDisplay() {
   display.setTargetFPS(60);
 

@@ -87,7 +87,7 @@ Protected variables accessed by both cores:
 - `engineReceived`, `aileronReceived`, `rudderReceived`, `elevatorsReceived`
 - `elevatorTrimReceived`, `aileronTrimReceived`, `flapsRecieved`
 - `resetAileronTrim`, `resetElevatorTrim`, `airBrakeReceived`
-- `lastRecievedTime` (critical for timeout detection)
+- `lastReceivedTime` (critical for timeout detection)
 
 ### **Error Handling**
 - **Mutex timeout warnings** when data access fails

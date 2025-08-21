@@ -1,23 +1,23 @@
 #include <Arduino.h>
 #include "Common/common.h"
 
-// Dual-Core Task Management
+// ⚡ Dual-Core Task Management
 void FlightControlTaskCode(void* pvParameters);
 void CommunicationTaskCode(void* pvParameters);
 
-// SD Card
+// 💾 SD Card
 #include "SD-Card.h"
 void setupSD();
 
-// Display
+// 🖥️ Display
 #include "Display.h"
 int frameCount = 1;
 int overlaysCount = 1;
 void setupDisplay();
 
-// Lora
+// 📡 Lora Communication
 #include <LoRa.h>
-const long frequency = 915E6;  // LoRa Frequency
+const long frequency = 915E6;  // LoRa Frequency 📻
 void setupRadio();
 void loraLoop();
 uint8_t simple_checksum(const uint8_t* data, size_t len);
@@ -29,37 +29,22 @@ void onTxDone();
 boolean timeout = false;
 
 /** @brief
- * Active Control System
+ * 🛩️ Active Control System
  */
 void ACS();
 
+void sendDataToAirplane();
 void printTaskInfo();
 
-// #include <Servo.h>
-// #include <printf.h>
 // #include "I2Cdev.h"
 // #include "MPU6050_6Axis_MotionApps612.h"
 // #include "RF24.h"
 
-// #define isLeonardo
-// #define isNano
-
-// #ifdef isLeonardo
 // #include <Adafruit_DPS310.h>
 // #include <SD.h>
 // #include "bmm150.h"
 // #include "bmm150_defs.h"
 // #endif
-
-// orientation/motion vars
-// Quaternion q;         // [w, x, y, z]         quaternion container
-// VectorInt16 aa;       // [x, y, z]            accel sensor measurements
-// VectorInt16 gy;       // [x, y, z]            gyro sensor measurements
-// VectorInt16 aaReal;   // [x, y, z]            gravity-free accel sensor measurements
-// VectorInt16 aaWorld;  // [x, y, z]            world-frame accel sensor measurements
-// VectorFloat gravity;  // [x, y, z]            gravity vector
-// float euler[3];       // [psi, theta, phi]    Euler angle container
-// float ypr[3];         // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 // #ifdef isLeonardo
 // Magnetometer BMM150

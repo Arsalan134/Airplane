@@ -2,19 +2,19 @@
 #include "SSD1306Wire.h"
 
 /*
+🛩️ ESP32-PICO-D4 Airplane Control System
     Chip is ESP32-PICO-D4 (revision v1.1)
     Features:
-        WiFi,
-        BT,
-        Dual Core 240MHz,
-        Embedded Flash,
-        VRef calibration in efuse,
-        Coding Scheme None
-    Crystal is 40MHz
-    MAC: 90:15:06:f6:17:e0
+        📶 WiFi,
+        📱 BT,
+        ⚡ Dual Core 240MHz,
+        💾 Embedded Flash,
+        🔧 VRef calibration in efuse,
+    🔮 Crystal is 40MHz
+    🏷️ MAC: 90:15:06:f6:17:e0
 */
 
-// PS5
+// 🎮 PS5 Controller
 #define MAC_ADDRESS "ac:36:1b:41:ac:ed"
 
 extern OLEDDisplayUi display;
@@ -50,4 +50,4 @@ extern bool airBrakeReceived;
 extern int RSSIToDisplay;
 extern int elapsedTimeToDisplay;
 
-extern unsigned long lastRecievedTime;
+extern unsigned long lastReceivedTime;

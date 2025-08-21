@@ -4,6 +4,20 @@
 String message = "e0a90r90l90t0i0f0z0y0b0#57";
 String recievedMessage = "e0a90r90l90t0i0f0z0y0b0#57";
 
+/*
+ 📡 LoRa Communication Protocol:
+ e - engine                 0 to 180 ⚡
+ a - ailerons               0 to 180 (90 is center position) 🛩️
+ r - rudder                 0 to 180 (90 is center position) 🎯
+ l - elevators              0 to 180 (90 is center position) ⬆️⬇️
+ t - elevators trim         -1, 0, 1 🔧
+ i - aileron trim           -1, 0, 1 🔧
+ f - flaps                  0 to 4 (0 no flaps, 4 full flaps) 🪶
+ z - reset aileron trim     0 or 1 (0 no reset, 1 reset) 🔄
+ y - reset elevator trim    0 or 1 (0 no reset, 1 reset) 🔄
+ b - airbrake               0 or 1 (0 no airbrake, 1 airbrake) 🛑
+*/
+
 int engineReceived = 0;
 int aileronReceived = 90;
 int rudderReceived = 90;
@@ -23,7 +37,7 @@ bool resetElevatorTrim = false;
 
 bool airBrakeReceived = false;
 
-unsigned long lastRecievedTime = millis();
+unsigned long lastReceivedTime = millis();
 
 int RSSI = 0;
 
@@ -31,23 +45,23 @@ int RSSIToDisplay;
 int elapsedTimeToDisplay;
 
 void LoRa_rxMode() {
-  LoRa.enableInvertIQ();  // active invert I and Q signals
-  LoRa.receive();         // set receive mode
+  LoRa.enableInvertIQ();  // active invert I and Q signals 📡
+  LoRa.receive();         // set receive mode 📥
 }
 
 void LoRa_txMode() {
-  LoRa.idle();             // set standby mode
-  LoRa.disableInvertIQ();  // normal mode
+  LoRa.idle();             // set standby mode 🚪
+  LoRa.disableInvertIQ();  // normal mode ✅
 }
 
 void LoRa_sendMessage(String message) {
-  LoRa_txMode();         // set tx mode
-  LoRa.beginPacket();    // start packet
-  LoRa.print(message);   // add payload
-  LoRa.endPacket(true);  // finish packet and send it
+  LoRa_txMode();         // set tx mode 📤
+  LoRa.beginPacket();    // start packet 📦
+  LoRa.print(message);   // add payload 💾
+  LoRa.endPacket(true);  // finish packet and send it 🚀
 }
 
-// XOR checksum function
+// XOR checksum function 🔐
 byte simple_checksum(const byte* data, size_t len) {
   byte sum = 0;
   for (size_t i = 0; i < len; i++) {
@@ -64,7 +78,7 @@ void onReceive(int packetSize) {
   message = "";
 
   if (packetSize == 0) {
-    Serial.println("Received empty packet");
+    Serial.println("📭 Received empty packet");
     return;
   }
 
@@ -76,14 +90,14 @@ void onReceive(int packetSize) {
   // Serial.println("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
-    Serial.println("Received message is too short");
+    Serial.println("📏 Received message is too short");
     Serial.println("Expected at least 10 characters, got: " + String(recievedMessage.length()));
     return;
   }
 
   indHashtag = recievedMessage.indexOf('#');
   if (indHashtag == -1) {
-    Serial.println("No end of message found");
+    Serial.println("❌ No end of message found");
     return;
   }
 
@@ -94,7 +108,7 @@ void onReceive(int packetSize) {
   byte calculatedChecksum = simple_checksum((const byte*)content.c_str(), content.length());
 
   if (calculatedChecksum != recievedChecksum) {
-    Serial.println("Invalid checksum: " + String(calculatedChecksum));
+    Serial.println("🔐 Invalid checksum: " + String(calculatedChecksum));
     Serial.println("Expected: " + String(recievedChecksum));
     Serial.println("Message: " + recievedMessage);
     return;
@@ -174,13 +188,13 @@ void onReceive(int packetSize) {
   RSSI = LoRa.packetRssi();
   RSSIToDisplay = RSSI;
 
-  elapsedTimeToDisplay = millis() - lastRecievedTime;
+  elapsedTimeToDisplay = millis() - lastReceivedTime;
 
   digitalWrite(BUILTIN_LED, 0);
-  lastRecievedTime = millis();
+  lastReceivedTime = millis();
 }
 
 void onTxDone() {
-  Serial.println("TxDone");
+  Serial.println("📡 TxDone");
   LoRa_rxMode();
 }
