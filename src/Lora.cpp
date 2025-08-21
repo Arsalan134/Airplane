@@ -1,5 +1,5 @@
 #include <LoRa.h>
-#include "Common/common.h"
+#include "common.h"
 
 String message = "e0a90r90l90t0i0f0z0y0b0#57";
 String recievedMessage = "e0a90r90l90t0i0f0z0y0b0#57";

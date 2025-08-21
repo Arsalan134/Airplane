@@ -1,5 +1,5 @@
-#include "Header Files/Display.h"
-#include "Common/common.h"
+#include "Display.h"
+#include "common.h"
 
 // draw an xbm image.
 // Please note that everything that should be transitioned

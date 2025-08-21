@@ -1,5 +1,5 @@
-#include "Header Files/Airplane.h"
-#include "Common/common.h"
+#include "Airplane.h"
+#include "common.h"
 
 // =============================================================================
 // STATIC MEMBERS AND SINGLETON IMPLEMENTATION ✈️

@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "Common/common.h"
+#include "common.h"
 
 // ⚡ Dual-Core Task Management
 void FlightControlTaskCode(void* pvParameters);
