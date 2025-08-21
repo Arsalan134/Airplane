@@ -88,25 +88,64 @@ pip install platformio
 
 ```
 📁 Airplane/
-├── 📄 platformio.ini           # PlatformIO configuration
-├── 📁 src/
-│   ├── 📄 main.cpp            # 🚀 Main dual-core setup
-│   ├── 📄 Airplane.cpp        # ✈️ Flight control logic
-│   ├── 📄 Lora.cpp            # 📡 LoRa communication
-│   ├── 📄 Display.cpp         # 🖥️ OLED display functions
-│   ├── 📄 SD-Card.cpp         # 💾 Data logging (future)
-│   ├── 📁 Header Files/
-│   │   ├── 📄 Airplane.h      # 🛩️ Aircraft class definition
-│   │   ├── 📄 main.h          # 🔧 Main header includes
-│   │   ├── 📄 Display.h       # 📺 Display prototypes
-│   │   ├── 📄 images.h        # 🖼️ OLED graphics
-│   │   └── 📄 SD-Card.h       # 💾 Storage definitions
-│   └── 📁 Common/
-│       └── 📄 common.h        # 🔗 Shared definitions
-├── 📁 include/                 # 📚 Additional headers
-├── 📁 lib/                     # 📦 Project libraries  
-└── 📁 test/                    # 🧪 Unit tests
+├── 📄 LICENSE                         # 📝 MIT License file
+├── 📄 platformio.ini                  # 🔧 PlatformIO configuration
+├── � README.md                       # 📚 This comprehensive documentation
+├── 📄 README_DUAL_CORE.md             # 🏗️ Dual-core implementation details
+├── 📂 include/                        # 📂 Header files directory
+│   ├── 📄 Airplane.h                  # 🛩️ Aircraft class definition
+│   ├── 📄 common.h                    # 🔗 Shared definitions and pin config
+│   ├── 📄 Display.h                   # 📺 Display interface and prototypes
+│   ├── 📄 images.h                    # 🖼️ OLED graphics and icons
+│   ├── 📄 main.h                      # 🔧 Main header includes
+│   └── 📄 SD-Card.h                   # 💾 Storage definitions
+├── 📂 src/                           # � Source code directory
+│   ├── 📄 main.cpp                    # �🚀 Main dual-core setup and control loop
+│   ├── 📄 Airplane.cpp               # ✈️ Flight control logic and servo management
+│   ├── 📄 Display.cpp                # �️ OLED display functions and UI
+│   ├── 📄 Lora.cpp                   # � LoRa communication and protocol handling
+│   └── 📄 SD-Card.cpp                # 💾 Data logging functionality
+└── 📂 test/                          # 📂 Unit tests directory
+    ├── � README                      # 📚 Test documentation
+    ├── 📂 test_airplane/              # ✈️ Aircraft control tests
+    │   └── 📄 test_airplane.cpp       # 🧪 Aircraft functionality unit tests
+    ├── 📂 test_lora/                  # 📡 LoRa communication tests
+    │   └── 📄 test_lora.cpp           # 🧪 LoRa protocol unit tests
+    ├── � test_main/                  # � Main functionality tests
+    │   ├── 📄 test_main.cpp           # 🧪 Main system integration tests
+    │   └── 📄 test_main_simple.cpp    # 🧪 Simplified main function tests
+    └── 📂 test_safety/                # �️ Safety system tests
+        └── 📄 test_safety.cpp         # 🧪 Safety feature validation tests
 ```
+
+### 📋 **Key Files Description**
+
+#### � **Core System Files**
+- **`main.cpp`**: Dual-core task implementation with FreeRTOS scheduling
+- **`common.h`**: Shared definitions, pin configurations, and system constants
+- **`main.h`**: Function declarations and system-wide includes
+
+#### ✈️ **Flight Control System**
+- **`Airplane.cpp/.h`**: Complete aircraft control logic, servo management, and flight algorithms
+- **`Display.cpp/.h`**: OLED display management with real-time flight data visualization
+- **`images.h`**: Graphics definitions, icons, and display assets
+
+#### � **Communication System**
+- **`Lora.cpp`**: LoRa communication protocol, packet handling, and error recovery
+- **`SD-Card.cpp/.h`**: Data logging system for flight data recording
+
+#### 🧪 **Testing Framework**
+- **`test/`**: Comprehensive unit testing suite with dedicated test categories
+  - **`test_airplane/`**: Aircraft-specific functionality tests
+  - **`test_lora/`**: LoRa communication and protocol tests  
+  - **`test_main/`**: Core system and integration tests
+  - **`test_safety/`**: Critical safety system validation tests
+
+#### 📚 **Documentation & Configuration**
+- **`README.md`**: This comprehensive project documentation
+- **`README_DUAL_CORE.md`**: Detailed dual-core architecture implementation guide
+- **`platformio.ini`**: Build configuration with dual-core optimization flags
+- **`LICENSE`**: MIT License terms and conditions
 
 ---
 
