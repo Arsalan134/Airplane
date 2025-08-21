@@ -68,7 +68,6 @@ String Airplane::getFlightModeString() const {
   }
 }
 
-// Complex getters
 bool Airplane::isControlInputValid() {
   return connectionActive && (millis() - lastReceivedTime < 1000);
 }
