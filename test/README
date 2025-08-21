@@ -1,11 +1,194 @@
 
-This directory is intended for PIO Unit Testing and project tests.
+# 🧪 Airplane Control System - Unit Tests
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+This directory contains comprehensive unit tests for the ESP32 Airplane Control System using the PlatformIO Unity testing framework.
 
-More information about PIO Unit Testing:
-- https://docs.platformio.org/page/plus/unit-testing.html
+## 🎯 Test Suites
+
+### 🛩️ **test_airplane** - Flight Control Tests
+Tests the core `Airplane` class functionality:
+- ⚡ Engine/throttle control (0-180)
+- 🎯 Rudder control with angle limits
+- ⬆️⬇️ Elevator control 
+- 🛩️ Aileron control (dual servo)
+- 🔧 Trim adjustment and limits
+- 🔄 Reset functions
+- 🛡️ Safety defaults and validation
+
+### 📡 **test_lora** - Communication Protocol Tests  
+Tests the LoRa communication system:
+- 📦 Packet parsing and validation
+- 🔐 XOR checksum verification
+- 📊 Data extraction from protocol fields
+- ❌ Malformed packet rejection
+- 🛑 Airbrake and trim reset commands
+- 🎛️ Extreme value handling
+
+### 🛡️ **test_safety** - Safety System Tests
+Tests critical safety mechanisms:
+- ⏱️ Connection timeout detection (2 second limit)
+- 🚨 Emergency mode activation
+- 🔄 Safe state reset (all controls neutral)
+- ✅ Input validation and boundary checking
+- 📡 Connection recovery procedures
+- ⏰ Timing edge cases
+
+### 🔗 **test_main** - Integration Tests
+Orchestrates all test suites and provides:
+- 🎯 Test runner coordination
+- 📊 Comprehensive result reporting
+- 🔗 Cross-module integration testing
+- 💻 Both native and ESP32 execution
+
+## 🚀 Running Tests
+
+### 📋 **Prerequisites**
+```bash
+# Install PlatformIO Core
+pip install platformio
+
+# Or use PlatformIO IDE extension in VS Code
+```
+
+### 🖥️ **Native Testing (PC)**
+Run tests on your development machine for faster iteration:
+```bash
+# Run all tests on native platform
+pio test -e native
+
+# Run specific test suite
+pio test -e native --filter test_airplane
+pio test -e native --filter test_lora  
+pio test -e native --filter test_safety
+```
+
+### 📱 **Hardware Testing (ESP32)**
+Run tests on actual ESP32 hardware:
+```bash
+# Run tests on ESP32 hardware
+pio test -e test
+
+# Upload and monitor test results
+pio test -e test --monitor
+```
+
+### 🎯 **Individual Test Execution**
+```bash
+# Run only airplane control tests
+pio test --filter "*airplane*"
+
+# Run only safety tests  
+pio test --filter "*safety*"
+
+# Run only communication tests
+pio test --filter "*lora*"
+```
+
+## 📊 Test Output
+
+Tests provide detailed output including:
+- ✅ **Pass/Fail Status** for each test
+- 📈 **Performance Metrics** 
+- 🔍 **Detailed Error Messages**
+- 📊 **Coverage Statistics**
+- 🎯 **Test Summary Reports**
+
+Example output:
+```
+🧪 Starting Airplane Unit Tests...
+✅ test_throttle_control - PASSED
+✅ test_aileron_control - PASSED  
+✅ test_safety_defaults - PASSED
+📊 10/10 tests passed (100%)
+🚀 Ready for Takeoff!
+```
+
+## 🏗️ Test Structure
+
+Each test suite follows this structure:
+```cpp
+#include <unity.h>
+
+void setUp(void) {
+    // Reset state before each test
+}
+
+void tearDown(void) {
+    // Clean up after each test  
+}
+
+void test_feature_name(void) {
+    // Arrange - Set up test conditions
+    // Act - Execute the functionality
+    // Assert - Verify expected results
+    TEST_ASSERT_EQUAL(expected, actual);
+}
+
+int main() {
+    UNITY_BEGIN();
+    RUN_TEST(test_feature_name);
+    return UNITY_END();
+}
+```
+
+## 🔧 Adding New Tests
+
+1. **Create test file** in appropriate directory:
+   ```
+   test/test_new_feature/test_new_feature.cpp
+   ```
+
+2. **Follow naming convention**:
+   - `test_[module]_[feature]()`
+   - Use descriptive names
+   - Group related tests
+
+3. **Include proper assertions**:
+   ```cpp
+   TEST_ASSERT_TRUE(condition);
+   TEST_ASSERT_EQUAL(expected, actual);
+   TEST_ASSERT_NOT_NULL(pointer);
+   ```
+
+4. **Test edge cases**:
+   - Boundary conditions
+   - Invalid inputs  
+   - Error conditions
+   - Resource limits
+
+## 🛡️ Safety Testing Guidelines
+
+When testing safety-critical aviation systems:
+
+- ✅ **Test all failure modes**
+- ✅ **Verify timeout handling** 
+- ✅ **Check emergency procedures**
+- ✅ **Validate input boundaries**
+- ✅ **Test connection recovery**
+- ✅ **Verify safe defaults**
+
+## 📈 Continuous Integration
+
+Tests are designed to run in CI/CD pipelines:
+```yaml
+# Example GitHub Actions
+- name: Run Unit Tests
+  run: pio test -e native
+  
+- name: Run Hardware Tests  
+  run: pio test -e test
+```
+
+## 🤝 Contributing Tests
+
+When contributing new tests:
+1. 🧪 **Write tests first** (TDD approach)
+2. ✅ **Ensure 100% pass rate** 
+3. 📝 **Document test purpose**
+4. 🎯 **Cover edge cases**
+5. 🚀 **Test on both native and hardware**
+
+---
+
+*For more information about PIO Unit Testing:*
+*https://docs.platformio.org/page/plus/unit-testing.html*

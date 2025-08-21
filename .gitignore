@@ -1,2 +1,11 @@
+# 🔧 PlatformIO
 .pio
+
+# 💻 VS Code
 .vscode/*
+
+# 🧪 Test artifacts
+.pio/test/
+test/output/
+*.test
+test_*.log
