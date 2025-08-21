@@ -120,55 +120,55 @@ void onReceive(int packetSize) {
     return;
   }
 
-  indA = recievedMessage.indexOf('a');  // 'a' is used for ailerons
+  indA = recievedMessage.indexOf('a', indE + 2);  // 'a' is used for ailerons
   if (indA == -1) {
     Serial.println("No aileron data found in the message");
     return;
   }
 
-  indR = recievedMessage.indexOf('r');  // 'r' is used for rudder
+  indR = recievedMessage.indexOf('r', indA + 2);  // 'r' is used for rudder
   if (indR == -1) {
     Serial.println("No rudder data found in the message");
     return;
   }
 
-  indEL = recievedMessage.indexOf('l');  // 'l' is used for elevators
+  indEL = recievedMessage.indexOf('l', indR + 2);  // 'l' is used for elevators
   if (indEL == -1) {
     Serial.println("No elevator data found in the message");
     return;
   }
 
-  indT = recievedMessage.indexOf('t');  // 't' is used for trim
+  indT = recievedMessage.indexOf('t', indEL + 2);  // 't' is used for trim
   if (indT == -1) {
     Serial.println("No trim data found in the message");
     return;
   }
 
-  indI = recievedMessage.indexOf('i');  // 'i' is used for aileron trim
+  indI = recievedMessage.indexOf('i', indT + 2);  // 'i' is used for aileron trim
   if (indI == -1) {
     Serial.println("No aileron trim data found in the message");
     return;
   }
 
-  indF = recievedMessage.indexOf('f');  // 'f' is used for flaps
+  indF = recievedMessage.indexOf('f', indI + 2);  // 'f' is used for flaps
   if (indF == -1) {
     Serial.println("No flaps data found in the message");
     return;
   }
 
-  indZ = recievedMessage.indexOf('z');  // 'z' is used for reset aileron trim
+  indZ = recievedMessage.indexOf('z', indF + 2);  // 'z' is used for reset aileron trim
   if (indZ == -1) {
     Serial.println("No reset aileron trim data found in the message");
     return;
   }
 
-  indY = recievedMessage.indexOf('y');  // 'y' is used for reset elevator trim
+  indY = recievedMessage.indexOf('y', indZ + 2);  // 'y' is used for reset elevator trim
   if (indY == -1) {
     Serial.println("No reset elevator trim data found in the message");
     return;
   }
 
-  indB = recievedMessage.indexOf('b');  // 'b' is used for airbrake
+  indB = recievedMessage.indexOf('b', indY + 2);  // 'b' is used for airbrake
   if (indB == -1) {
     Serial.println("No airbrake data found in the message");
     return;
