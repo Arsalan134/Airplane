@@ -97,7 +97,7 @@ void FlightControlTaskCode(void* pvParameters) {
       if (millis() - lastReceivedTime >= CONNECTION_TIMEOUT) {
         // Emergency flight control - critical safety function
         // Serial.println("[CORE 1] 🚨 Emergency mode activated!");
-        airplane.emergencyShutdown();
+        // airplane.emergencyShutdown();
         ACS();
       } else {
         sendDataToAirplane();
