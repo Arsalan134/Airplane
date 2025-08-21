@@ -17,7 +17,7 @@ void setupDisplay();
 
 // 📡 Lora Communication
 #include <LoRa.h>
-const long frequency = 915E6;  // LoRa Frequency 📻
+#define FREQUENCY 915E6  // LoRa Frequency 📻
 void setupRadio();
 void loraLoop();
 uint8_t simple_checksum(const uint8_t* data, size_t len);

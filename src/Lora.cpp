@@ -174,6 +174,7 @@ void onReceive(int packetSize) {
     return;
   }
 
+  // Extract values from the message
   engineReceived = recievedMessage.substring(indE + 1, indA).toInt();
   aileronReceived = recievedMessage.substring(indA + 1, indR).toInt();
   rudderReceived = recievedMessage.substring(indR + 1, indEL).toInt();

@@ -210,22 +210,18 @@ void setupSD() {}
 void setupRadio() {
   LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 
-  while (!LoRa.begin(frequency)) {
+  while (!LoRa.begin(FREQUENCY)) {
     Serial.println("❌ LoRa init failed. Check your connections.");
     delay(200);
   }
 
-  Serial.println("✅ LoRa init succeeded.");
-  Serial.println();
-  Serial.println("📡 LoRa Simple Node");
-  Serial.println("📥 Only receive messages from gateways");
-  Serial.println("📤 Tx: invertIQ disable");
-  Serial.println("📥 Rx: invertIQ enable");
-  Serial.println();
+  LoRa.disableCrc();
 
   LoRa.onReceive(onReceive);
   LoRa.onTxDone(onTxDone);
   LoRa_rxMode();
+
+  Serial.println("✅ LoRa init succeeded.");
 }
 
 // The ESP is capable of rendering 60fps in 80Mhz mode
