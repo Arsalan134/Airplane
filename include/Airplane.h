@@ -1,8 +1,6 @@
-#ifndef AIRPLANE_H
-#define AIRPLANE_H
-
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include "FlightProtocol.h"
 
 // 🔌 Servo pin definitions
 #define ENGINE_PIN 4
@@ -28,20 +26,9 @@ class Airplane {
   // Private constructor for singleton
   Airplane();
 
-  // Servo initialization
-  void initializeServos();
-  void initializeEngines();
-
   // Delete copy constructor and assignment operator
   Airplane(const Airplane&) = delete;
   Airplane& operator=(const Airplane&) = delete;
-
-  // 🛩️ Flight control surfaces
-  byte targetRoll;
-  byte targetRudder;
-  byte targetElevators;
-  /// @brief Target engine throttle (0-100%) from 0 to 180 ⚡
-  byte targetEngine;
 
   // Servo objects
   Servo engineServos;
@@ -50,28 +37,42 @@ class Airplane {
   Servo elevationRightMotorServo;
   Servo rudderMotorServo;
 
+  // 🛩️ Flight control targets
+  uint8_t targetRoll;
+  uint8_t targetRudder;
+  uint8_t targetElevators;
+  uint8_t targetEngine;  // Target engine throttle (0-100%) from 0 to 180 ⚡
+
   // Trim settings
-  int elevatorTrim = 0;
-  int aileronTrim = 0;
-  int flaps = 0;
+  int8_t elevatorTrim = 0;
+  int8_t aileronTrim = 0;
+  uint8_t flaps = 0;
   bool landingAirbrake = false;
 
   // Safety and status
   unsigned long lastReceivedTime;
+  unsigned long lastI2CCommand;
   bool connectionActive;
+  bool slaveHealthy;
 
   // High-level flight parameters
-  float currentRollAngle;
-  float currentPitchAngle;
-  float currentYawAngle;
+  // float currentRollAngle;
+  // float currentPitchAngle;
+  // float currentYawAngle;
 
   // Flight mode
   FlightMode currentFlightMode;
 
+  // Sensor data from slave
+  FlightDataPacket latestFlightData;
+  bool newFlightDataAvailable;
+
   // Private helper functions
   void checkConnectionTimeout();
-  bool isValidControlValue(byte value);
+  bool isValidControlValue(uint8_t value);
   void logControlChanges();
+  bool requestFlightData();
+  bool requestSlaveStatus();
   void writeToServos();
 
  public:
@@ -80,21 +81,23 @@ class Airplane {
 
   // Public utility functions
   void initialize();
+  void initializeServos();
+  void initializeEngines();
   void update();
   bool isControlInputValid();
   void emergencyShutdown();
   String getStatusString();
 
   // 🔧 Setters for flight controls
-  void setThrottle(byte value);   // Engine throttle 0-100% | 0 - 180 ⚡
-  void setRudder(byte value);     // 🎯
-  void setElevators(byte value);  // ⬆️⬇️
-  void setAilerons(byte value);   // Set both ailerons 🛩️
+  void setThrottle(uint8_t value);   // Engine throttle 0-100% | 0 - 180 ⚡
+  void setRudder(uint8_t value);     // 🎯
+  void setElevators(uint8_t value);  // ⬆️⬇️
+  void setAilerons(uint8_t value);   // Set both ailerons 🛩️
 
   // 🔧 Setter for trim
-  void setElevatorTrim(int value);
-  void setAileronTrim(int value);
-  void setFlaps(int value);              // 🪶
+  void setElevatorTrim(int8_t value);
+  void setAileronTrim(int8_t value);
+  void setFlaps(uint8_t value);          // 🪶
   void setLandingAirbrake(bool active);  // 🛑
 
   // 🔄 Reset trim functions
@@ -113,8 +116,6 @@ class Airplane {
 
   // Combined maneuver functions
   void performLevel();  // Level flight (all controls neutral)
-  // void performTurn(float bankAngle, float rudderInput = 0);
-  // void performBarrelRoll(int direction = 1);  // 1 = right, -1 = left
   void performLanding(float glidePath = -3.0);
 
   // Flight mode functions
@@ -122,10 +123,15 @@ class Airplane {
 
   // Getters
   bool isConnectionActive() const;
-
-  // High-level getters
+  bool isSlaveHealthy() const;
   FlightMode getFlightMode() const;
   String getFlightModeString() const;
-};
 
-#endif  // AIRPLANE_H
+  // Sensor data getters
+  bool getFlightData(FlightDataPacket& data);
+  float getCurrentRoll() const;
+  float getCurrentPitch() const;
+  float getCurrentYaw() const;
+  float getCurrentAltitude() const;
+  float getCurrentTemperature() const;
+};
