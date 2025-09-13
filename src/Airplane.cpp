@@ -13,16 +13,15 @@ Airplane* Airplane::instance = nullptr;
 // =============================================================================
 
 Airplane::Airplane() {
-  // Initialize default values
-  targetRoll = 90;       // Neutral position
-  targetRudder = 90;     // Neutral position
-  targetElevators = 90;  // Neutral position
-  targetEngine = 0;      // Engine off
-
-  elevatorTrim = 0;
-  aileronTrim = 0;
-  flaps = 0;
-  landingAirbrake = false;
+  // Initialize ServoCommandPacket with default values
+  servoCommands.engine = 0;               // Engine off
+  servoCommands.roll = 90;                // Neutral position
+  servoCommands.elevators = 90;           // Neutral position
+  servoCommands.rudder = 90;              // Neutral position
+  servoCommands.trim_elevator = 0;        // No trim
+  servoCommands.trim_aileron = 0;         // No trim
+  servoCommands.flaps = 0;                // No flaps
+  servoCommands.landingAirbrake = false;  // Airbrake off
 
   lastReceivedTime = millis();
   lastI2CCommand = 0;
@@ -171,7 +170,7 @@ bool Airplane::requestSlaveStatus() {
 
 void Airplane::setThrottle(uint8_t value) {
   if (isValidControlValue(value)) {
-    targetEngine = constrain(value, 0, 180);
+    servoCommands.engine = constrain(value, 0, 180);
     updateLastReceivedTime();
     writeToServos();
   }
@@ -179,7 +178,7 @@ void Airplane::setThrottle(uint8_t value) {
 
 void Airplane::setRudder(uint8_t value) {
   if (isValidControlValue(value)) {
-    targetRudder = map(value, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom);
+    servoCommands.rudder = map(value, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom);
     updateLastReceivedTime();
     writeToServos();
   }
@@ -187,7 +186,7 @@ void Airplane::setRudder(uint8_t value) {
 
 void Airplane::setElevators(uint8_t value) {
   if (isValidControlValue(value)) {
-    targetElevators = constrain(value, 0, 180);
+    servoCommands.elevators = constrain(value, 0, 180);
     updateLastReceivedTime();
     writeToServos();
   }
@@ -195,7 +194,7 @@ void Airplane::setElevators(uint8_t value) {
 
 void Airplane::setAilerons(uint8_t value) {
   if (isValidControlValue(value)) {
-    targetRoll = constrain(value, 0, 180);
+    servoCommands.roll = constrain(value, 0, 180);
     updateLastReceivedTime();
     writeToServos();
   }
@@ -203,59 +202,59 @@ void Airplane::setAilerons(uint8_t value) {
 
 void Airplane::setElevatorTrim(int8_t value) {
   if (value > 0)
-    elevatorTrim += TRIM_STEP;
+    servoCommands.trim_elevator += TRIM_STEP;
   else if (value < 0)
-    elevatorTrim -= TRIM_STEP;
+    servoCommands.trim_elevator -= TRIM_STEP;
 
-  elevatorTrim = constrain(elevatorTrim, -TRIM_LIMIT, TRIM_LIMIT);
-  elevatorTrimToDisplay = elevatorTrim;  // Update trim for compatibility with Lora
+  servoCommands.trim_elevator = constrain(servoCommands.trim_elevator, -TRIM_LIMIT, TRIM_LIMIT);
+  elevatorTrimToDisplay = servoCommands.trim_elevator;  // Update trim for compatibility with Lora
 
   elevatorTrimReceived = 0;
 }
 
 void Airplane::setAileronTrim(int8_t value) {
   if (value > 0)
-    aileronTrim += TRIM_STEP;
+    servoCommands.trim_aileron += TRIM_STEP;
   else if (value < 0)
-    aileronTrim -= TRIM_STEP;
+    servoCommands.trim_aileron -= TRIM_STEP;
   else
     return;
 
-  aileronTrim = constrain(aileronTrim, -TRIM_LIMIT, TRIM_LIMIT);
-  aileronTrimToDisplay = aileronTrim;
+  servoCommands.trim_aileron = constrain(servoCommands.trim_aileron, -TRIM_LIMIT, TRIM_LIMIT);
 
+  aileronTrimToDisplay = servoCommands.trim_aileron;
   aileronTrimReceived = 0;
 }
 
 void Airplane::setFlaps(uint8_t value) {
-  flaps = constrain(value, -TRIM_LIMIT, TRIM_LIMIT);
-  flapsToDisplay = flaps;
+  servoCommands.flaps = constrain(value, -TRIM_LIMIT, TRIM_LIMIT);
+  flapsToDisplay = servoCommands.flaps;
 }
 
 void Airplane::resetAileronTrim() {
-  aileronTrim = 0;
-  aileronTrimToDisplay = aileronTrim;  // Update trim for compatibility with Lora
+  servoCommands.trim_aileron = 0;
+  aileronTrimToDisplay = servoCommands.trim_aileron;  // Update trim for compatibility with Lora
   aileronTrimReceived = 0;
 }
 
 void Airplane::resetElevatorTrim() {
-  elevatorTrim = 0;
-  elevatorTrimToDisplay = elevatorTrim;  // Update trim for compatibility with Lora
+  servoCommands.trim_elevator = 0;
+  elevatorTrimToDisplay = servoCommands.trim_elevator;  // Update trim for compatibility with Lora
 }
 
 void Airplane::setLandingAirbrake(bool active) {
-  landingAirbrake = active;
+  servoCommands.landingAirbrake = active;
 }
 
 void Airplane::resetToSafeDefaults() {
-  targetEngine = 0;         // Engine off
-  targetRoll = 90;          // Neutral
-  targetElevators = 90;     // Neutral
-  targetRudder = 90;        // Neutral
-  elevatorTrim = 0;         // No trim
-  aileronTrim = 0;          // No trim
-  flaps = 0;                // No flaps
-  landingAirbrake = false;  // Airbrake off
+  servoCommands.engine = 0;               // Engine off
+  servoCommands.roll = 90;                // Neutral
+  servoCommands.elevators = 90;           // Neutral
+  servoCommands.rudder = 90;              // Neutral
+  servoCommands.trim_elevator = 0;        // No trim
+  servoCommands.trim_aileron = 0;         // No trim
+  servoCommands.flaps = 0;                // No flaps
+  servoCommands.landingAirbrake = false;  // Airbrake off
 
   // Reset to safe flight mode
   currentFlightMode = FlightMode::STABILITY;
@@ -325,8 +324,8 @@ void Airplane::updateLastReceivedTime() {
 }
 
 void Airplane::logControlChanges() {
-  Serial.printf("🎮 Controls - Engine: %d, Roll: %d, Elevator: %d, Rudder: %d, Slave: %s\n", targetEngine, targetRoll, targetElevators,
-                targetRudder, slaveHealthy ? "✅" : "❌");
+  Serial.printf("🎮 Controls - Engine: %d, Roll: %d, Elevators: %d, Rudder: %d, Slave: %s\n", servoCommands.engine, servoCommands.roll,
+                servoCommands.elevators, servoCommands.rudder, slaveHealthy ? "✅" : "❌");
 }
 
 String Airplane::getStatusString() {
@@ -335,26 +334,27 @@ String Airplane::getStatusString() {
 
 void Airplane::writeToServos() {
   // Engine
-  engineServos.write(constrain(targetEngine, 0, 180));
+  engineServos.write(constrain(servoCommands.engine, 0, 180));
 
   // Ailerons
-  int targetRollForServo = targetRoll;
+  int targetRollForServo = servoCommands.roll;
   bool shouldApplyFlaps = abs(targetRollForServo - 90) < 10;
 
-  targetRollForServo += aileronTrim;
-  targetRollForServo += shouldApplyFlaps ? flaps * FLAP_ANGLE : 0;
+  targetRollForServo += servoCommands.trim_aileron;
+  targetRollForServo += shouldApplyFlaps ? servoCommands.flaps * FLAP_ANGLE : 0;
 
-  if (landingAirbrake)
+  if (servoCommands.landingAirbrake)
     targetRollForServo = 0;
 
   rollLeftMotorServo.write(constrain(180 - targetRollForServo, 0, 180));  // Left aileron
 
   // Elevators
-  elevationLeftMotorServo.write(constrain(targetElevators + elevatorTrim, 0, 180));
-  elevationRightMotorServo.write(constrain(180 - targetElevators - elevatorTrim, 0, 180));  // Right elevator inverted
+  elevationLeftMotorServo.write(constrain(servoCommands.elevators + servoCommands.trim_elevator, 0, 180));
+  elevationRightMotorServo.write(
+      constrain(180 - servoCommands.elevators - servoCommands.trim_elevator, 0, 180));  // Right elevator inverted
 
   // Rudder
-  rudderMotorServo.write(constrain(targetRudder, 0, 180));
+  rudderMotorServo.write(constrain(servoCommands.rudder, 0, 180));
 
   // logControlChanges();
 }

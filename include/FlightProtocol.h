@@ -13,9 +13,8 @@
 struct ServoCommandPacket {
   uint8_t header;         // Packet type identifier
   uint8_t engine;         // Engine throttle 0-180
-  uint8_t rollLeft;       // Roll left aileron position
-  uint8_t elevatorLeft;   // Left elevator position
-  uint8_t elevatorRight;  // Right elevator position
+  uint8_t roll;           // Roll ailerons position
+  uint8_t elevators;      // Elevators position
   uint8_t rudder;         // Rudder position
   uint8_t trim_elevator;  // Elevator trim
   uint8_t trim_aileron;   // Aileron trim

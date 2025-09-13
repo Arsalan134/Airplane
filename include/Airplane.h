@@ -37,17 +37,8 @@ class Airplane {
   Servo elevationRightMotorServo;
   Servo rudderMotorServo;
 
-  // 🛩️ Flight control targets
-  uint8_t targetRoll;
-  uint8_t targetRudder;
-  uint8_t targetElevators;
-  uint8_t targetEngine;  // Target engine throttle (0-100%) from 0 to 180 ⚡
-
-  // Trim settings
-  int8_t elevatorTrim = 0;
-  int8_t aileronTrim = 0;
-  uint8_t flaps = 0;
-  bool landingAirbrake = false;
+  // 🛩️ Flight control commands
+  ServoCommandPacket servoCommands;
 
   // Safety and status
   unsigned long lastReceivedTime;
