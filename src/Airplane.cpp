@@ -356,7 +356,7 @@ void Airplane::writeToServos() {
   // Rudder
   rudderMotorServo.write(constrain(targetRudder, 0, 180));
 
-  logControlChanges();
+  // logControlChanges();
 }
 
 // String Airplane::getFlightModeString() const {

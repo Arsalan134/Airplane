@@ -115,12 +115,13 @@ void FlightControlTaskCode(void* pvParameters) {
     }
 
     // Performance monitoring
-    unsigned long taskDuration = micros() - taskStartTime;
-    if (millis() - lastControlUpdate > 1000) {
-      Serial.println("[CORE 1] 📊 Control loop: " + String(controlUpdates) + " Hz, avg " + String(taskDuration) + "μs");
-      controlUpdates = 0;
-      lastControlUpdate = millis();
-    }
+    // unsigned long taskDuration = micros() - taskStartTime;
+
+    // if (millis() - lastControlUpdate > 1000) {
+    //   Serial.println("[CORE 1] 📊 Control loop: " + String(controlUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+    //   controlUpdates = 0;
+    //   lastControlUpdate = millis();
+    // }
 
     // Run at ~100Hz for responsive flight control
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -148,7 +149,7 @@ void CommunicationTaskCode(void* pvParameters) {
       lastDisplayUpdate = millis();
     }
 
-    printTaskInfo();  // Print performance info periodically
+    // printTaskInfo();  // Print performance info periodically
 
     // You can add other communication tasks here:
     // - WiFi management
@@ -157,14 +158,14 @@ void CommunicationTaskCode(void* pvParameters) {
     // - Data telemetry
 
     // Performance monitoring
-    commUpdates++;
-    unsigned long taskDuration = micros() - taskStartTime;
+    // commUpdates++;
+    // unsigned long taskDuration = micros() - taskStartTime;
 
-    if (millis() - lastCommUpdate > 1000) {
-      Serial.println("[CORE 0] 📡 Communication: " + String(commUpdates) + " Hz, avg " + String(taskDuration) + "μs");
-      commUpdates = 0;
-      lastCommUpdate = millis();
-    }
+    // if (millis() - lastCommUpdate > 1000) {
+    //   Serial.println("[CORE 0] 📡 Communication: " + String(commUpdates) + " Hz, avg " + String(taskDuration) + "μs");
+    //   commUpdates = 0;
+    //   lastCommUpdate = millis();
+    // }
 
     vTaskDelay(20 / portTICK_PERIOD_MS);  // Run at ~50Hz - adequate for communication and display
   }
@@ -184,21 +185,6 @@ void sendDataToAirplane() {
     airplane.resetAileronTrim();
   if (resetElevatorTrim)
     airplane.resetElevatorTrim();
-}
-
-// =============================================================================
-// PERFORMANCE MONITORING 🔍
-// =============================================================================
-void printTaskInfo() {
-  static unsigned long lastPrint = 0;
-  if (millis() - lastPrint > 5000) {  // Print every 5 seconds
-    Serial.println("=== 🚀 DUAL-CORE PERFORMANCE 📈 ===");
-    Serial.println("💾 Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
-    Serial.print("🎯 Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
-    Serial.println(" | 📻 Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
-    Serial.println("===============================");
-    lastPrint = millis();
-  }
 }
 
 void ACS() {
@@ -260,4 +246,19 @@ void setupDisplay() {
 
   ui.setTextAlignment(TEXT_ALIGN_LEFT);
   ui.setFont(ArialMT_Plain_10);
+}
+
+// =============================================================================
+// PERFORMANCE MONITORING 🔍
+// =============================================================================
+void printTaskInfo() {
+  static unsigned long lastPrint = 0;
+  if (millis() - lastPrint > 5000) {  // Print every 5 seconds
+    Serial.println("=== 🚀 DUAL-CORE PERFORMANCE 📈 ===");
+    Serial.println("💾 Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
+    Serial.print("🎯 Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
+    Serial.println(" | 📻 Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
+    Serial.println("===============================");
+    lastPrint = millis();
+  }
 }
