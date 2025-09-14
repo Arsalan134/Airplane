@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "IMU.h"
 #include "common.h"
 
 // ⚡ Dual-Core Task Management
@@ -36,8 +37,8 @@ void ACS();
 void sendDataToAirplane();
 void printTaskInfo();
 
-// #include "I2Cdev.h"
-// #include "MPU6050_6Axis_MotionApps612.h"
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps612.h"
 // #include "RF24.h"
 
 // #include <Adafruit_DPS310.h>

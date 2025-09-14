@@ -1,11 +1,12 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
 #include "FlightProtocol.h"
+#include "IMU.h"
 
 // 🔌 Servo pin definitions
 #define ENGINE_PIN 4
+#define ROLL_RIGHT_MOTOR_PIN 25
 #define ROLL_LEFT_MOTOR_PIN 12       // green cable 🟢
-#define ROLL_RIGHT_MOTOR_PIN 0       // green cable 🟢
 #define ELEVATION_LEFT_MOTOR_PIN 13  // blue cable 🔵 used by sd card
 #define ELEVATION_RIGHT_MOTOR_PIN 2  // blue cable 🔵 used by sd card
 #define RUDDER_MOTOR_PIN 15          // yellow cable 🟡 used by sd card
@@ -56,9 +57,15 @@ class Airplane {
   // Flight mode
   FlightMode currentFlightMode;
 
+  // IMU integration
+  IMU& imu;
+  IMUData latestIMUData;
+  bool imuDataAvailable;
+  unsigned long lastIMUUpdate;
+
   // Sensor data from slave
-  FlightDataPacket latestFlightData;
-  bool newFlightDataAvailable;
+  // FlightDataPacket latestFlightData;
+  // bool newFlightDataAvailable;
 
   // Private helper functions
   void checkConnectionTimeout();
@@ -67,6 +74,11 @@ class Airplane {
   bool requestFlightData();
   bool requestSlaveStatus();
   void writeToServos();
+  
+  // IMU helper functions
+  void updateIMU();
+  void processIMUData();
+  bool isIMUDataFresh() const;
 
  public:
   // Singleton instance getter
@@ -76,6 +88,7 @@ class Airplane {
   void initialize();
   void initializeServos();
   void initializeEngines();
+  void initializeIMU();
   void update();
   bool isControlInputValid();
   void emergencyShutdown();
@@ -127,4 +140,16 @@ class Airplane {
   float getCurrentYaw() const;
   float getCurrentAltitude() const;
   float getCurrentTemperature() const;
+  
+  // IMU data getters
+  bool getIMUData(IMUData& data);
+  float getIMURoll() const;
+  float getIMUPitch() const; 
+  float getIMUYaw() const;
+  float getIMURollRate() const;
+  float getIMUPitchRate() const;
+  float getIMUYawRate() const;
+  bool isIMUReady() const;
+  void calibrateIMU();
+  void resetIMUOrientation();
 };

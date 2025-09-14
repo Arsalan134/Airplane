@@ -1,4 +1,5 @@
 #include "Display.h"
+#include "Airplane.h"
 #include "common.h"
 
 // draw an xbm image.
@@ -7,6 +8,8 @@
 void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
+
+  Airplane& airplane = Airplane::getInstance();
 
   display->drawString(0 + x, 10 + y, String(aileronReceived));
   display->drawString(25 + x, 10 + y, String(elevatorsReceived));
@@ -21,9 +24,18 @@ void drawFrame1(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int1
 
   display->drawString(50 + x, 30 + y, String(flapsToDisplay));
 
-  display->drawXbm(x + 0, y + 36, ps5Icon::xres, ps5Icon::yres, ps5Icon::pixels);
+  // IMU Data Display
+  if (airplane.isIMUReady()) {
+    display->drawString(0 + x, 40 + y, "R:" + String(airplane.getIMURoll(), 1));
+    display->drawString(35 + x, 40 + y, "P:" + String(airplane.getIMUPitch(), 1));
+    display->drawString(70 + x, 40 + y, "Y:" + String(airplane.getIMUYaw(), 1));
+  } else {
+    display->drawString(0 + x, 40 + y, "IMU: Not Ready");
+  }
 
-  display->drawString(50 + x, 52 + y, "Arsalan Iravani");
+  // display->drawXbm(x + 0, y + 50, ps5Icon::xres, ps5Icon::yres, ps5Icon::pixels);
+
+  // display->drawString(50 + x, 52 + y, "Arsalan Iravani");
 }
 
 // Demonstrates the 3 included default sizes. The fonts come from SSD1306Fonts.h file

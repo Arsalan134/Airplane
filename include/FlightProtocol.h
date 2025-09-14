@@ -11,16 +11,16 @@
 
 // Flight control packet structure
 struct ServoCommandPacket {
-  uint8_t header;         // Packet type identifier
-  uint8_t engine;         // Engine throttle 0-180
-  uint8_t roll;           // Roll ailerons position
-  uint8_t elevators;      // Elevators position
-  uint8_t rudder;         // Rudder position
-  uint8_t trim_elevator;  // Elevator trim
-  uint8_t trim_aileron;   // Aileron trim
-  uint8_t flaps;          // Flap position
-  bool landingAirbrake;   // Airbrake state
-  uint8_t checksum;       // Simple checksum for validation
+  uint8_t header;        // Packet type identifier
+  uint8_t engine;        // Engine throttle 0-180
+  uint8_t roll;          // Roll ailerons position
+  uint8_t elevators;     // Elevators position
+  uint8_t rudder;        // Rudder position
+  int8_t trim_elevator;  // Elevator trim
+  int8_t trim_aileron;   // Aileron trim
+  uint8_t flaps;         // Flap position
+  bool landingAirbrake;  // Airbrake state
+  uint8_t checksum;      // Simple checksum for validation
 } __attribute__((packed));
 
 // Flight data from sensors (Nano 33 BLE → TTGO)
@@ -29,10 +29,14 @@ struct FlightDataPacket {
   float roll;            // Roll angle in degrees
   float pitch;           // Pitch angle in degrees
   float yaw;             // Yaw angle in degrees
+  float rollRate;        // Roll rate in degrees/second
+  float pitchRate;       // Pitch rate in degrees/second
+  float yawRate;         // Yaw rate in degrees/second
   float altitude;        // Barometric altitude
   float temperature;     // Temperature in Celsius
   float pressure;        // Atmospheric pressure
   uint8_t servo_status;  // Servo health status bits
+  uint8_t imu_status;    // IMU status bits
   uint8_t checksum;      // Simple checksum
 } __attribute__((packed));
 

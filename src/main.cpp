@@ -34,7 +34,7 @@ void setup() {
   Serial.println("✈️ Starting Dual-Core Airplane Control System... 🚁");
   Serial.println("🔧 Setup running on Core: " + String(xPortGetCoreID()));
 
-  pinMode(BUILTIN_LED, OUTPUT);
+  // pinMode(BUILTIN_LED, OUTPUT);
 
   // Create mutex for shared data protection
   xDataMutex = xSemaphoreCreateMutex();
@@ -47,6 +47,13 @@ void setup() {
   setupDisplay();
   setupRadio();
   airplane.initialize();
+
+  // Print IMU status
+  if (airplane.isIMUReady()) {
+    Serial.println("🧭 IMU System: ✅ Ready");
+  } else {
+    Serial.println("🧭 IMU System: ❌ Not Ready");
+  }
 
   // Create tasks for dual-core operation
   // Core 1: Real-time flight control (high priority)
@@ -258,6 +265,14 @@ void printTaskInfo() {
     Serial.println("💾 Free Heap: " + String(ESP.getFreeHeap()) + " bytes");
     Serial.print("🎯 Flight Control Task (Core 1): " + String(uxTaskGetStackHighWaterMark(FlightControlTask)) + " words free");
     Serial.println(" | 📻 Communication Task (Core 0): " + String(uxTaskGetStackHighWaterMark(CommunicationTask)) + " words free");
+
+    // IMU Status
+    if (airplane.isIMUReady()) {
+      Serial.printf("🧭 IMU: R=%.1f° P=%.1f° Y=%.1f°\n", airplane.getIMURoll(), airplane.getIMUPitch(), airplane.getIMUYaw());
+    } else {
+      Serial.println("🧭 IMU: ❌ Not Ready");
+    }
+
     Serial.println("===============================");
     lastPrint = millis();
   }

@@ -51,3 +51,6 @@ extern int RSSIToDisplay;
 extern int elapsedTimeToDisplay;
 
 extern unsigned long lastReceivedTime;
+
+// IMU status for display
+extern bool imuStatusDisplay;

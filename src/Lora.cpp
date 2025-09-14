@@ -73,7 +73,7 @@ byte simple_checksum(const byte* data, size_t len) {
 int indE, indA, indR, indEL, indT, indI, indF, indZ, indY, indB, indHashtag;
 
 void onReceive(int packetSize) {
-  digitalWrite(BUILTIN_LED, 1);
+  // digitalWrite(BUILTIN_LED, 1);
 
   message = "";
 
@@ -87,7 +87,7 @@ void onReceive(int packetSize) {
 
   recievedMessage = message;
 
-  // Serial.println("Message: \t" + recievedMessage);
+  Serial.println("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
     Serial.println("📏 Received message is too short");
@@ -191,7 +191,6 @@ void onReceive(int packetSize) {
 
   elapsedTimeToDisplay = millis() - lastReceivedTime;
 
-  digitalWrite(BUILTIN_LED, 0);
   lastReceivedTime = millis();
 }
 

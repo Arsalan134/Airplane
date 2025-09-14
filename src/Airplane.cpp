@@ -1,4 +1,5 @@
 #include "Airplane.h"
+#include <Wire.h>
 #include "common.h"
 
 // =============================================================================
@@ -12,7 +13,7 @@ Airplane* Airplane::instance = nullptr;
 // CONSTRUCTOR 🏗️
 // =============================================================================
 
-Airplane::Airplane() {
+Airplane::Airplane() : imu(IMU::getInstance()) {
   // Initialize ServoCommandPacket with default values
   servoCommands.engine = 0;               // Engine off
   servoCommands.roll = 90;                // Neutral position
@@ -27,12 +28,17 @@ Airplane::Airplane() {
   lastI2CCommand = 0;
   connectionActive = false;
   slaveHealthy = false;
-  newFlightDataAvailable = false;
+  // newFlightDataAvailable = false;
 
   currentFlightMode = FlightMode::MANUAL;
 
+  // Initialize IMU-related members
+  imuDataAvailable = false;
+  lastIMUUpdate = 0;
+  memset(&latestIMUData, 0, sizeof(latestIMUData));
+
   // Initialize flight data
-  memset(&latestFlightData, 0, sizeof(latestFlightData));
+  // memset(&latestFlightData, 0, sizeof(latestFlightData));
 }
 
 // Singleton getInstance method
@@ -44,11 +50,12 @@ Airplane& Airplane::getInstance() {
 }
 
 void Airplane::initialize() {
-  Serial.println("🛩️ Initializing Airplane Master Controller");
+  Serial.println("🛩️  Initializing Airplane Master Controller");
 
-  delay(200);  // Allow time for hardware to stabilize
+  delay(100);  // Allow time for hardware to stabilize
   initializeServos();
   initializeEngines();
+  initializeIMU();
 
   // Set safe defaults
   resetToSafeDefaults();
@@ -76,11 +83,14 @@ void Airplane::initializeServos() {
 
 void Airplane::initializeEngines() {
   engineServos.attach(ENGINE_PIN, 1000, 2000);  // Attach servo with proper PWM range for ESC
-  Serial.println("⚡Engines initialized successfully");
+  Serial.println("⚡ Engines initialized successfully");
 }
 
 void Airplane::update() {
   unsigned long currentTime = millis();
+
+  // Update IMU data
+  updateIMU();
 
   // Request flight data every 100ms (10Hz)
   // static unsigned long lastDataRequest = 0;
@@ -98,15 +108,15 @@ void Airplane::update() {
   //   lastLog = currentTime;
   // }
 
-  static unsigned long lastUpdate = 0;
-  static int updateCount = 0;
-  updateCount++;
+  // static unsigned long lastUpdate = 0;
+  // static int updateCount = 0;
+  // updateCount++;
 
-  if (millis() - lastUpdate > 1000) {
-    Serial.println("📊 Flight Control Updates/sec: " + String(updateCount) + " (Core: " + String(xPortGetCoreID()) + ")");
-    updateCount = 0;
-    lastUpdate = millis();
-  }
+  // if (millis() - lastUpdate > 1000) {
+  // Serial.println("📊 Flight Control Updates/sec: " + String(updateCount) + " (Core: " + String(xPortGetCoreID()) + ")");
+  // updateCount = 0;
+  // lastUpdate = millis();
+  // }
 }
 
 bool Airplane::requestFlightData() {
@@ -126,13 +136,13 @@ bool Airplane::requestFlightData() {
     Wire.readBytes((uint8_t*)&tempData, sizeof(FlightDataPacket));
 
     // Validate checksum
-    if (validateChecksum((uint8_t*)&tempData, sizeof(FlightDataPacket))) {
-      latestFlightData = tempData;
-      newFlightDataAvailable = true;
-      return true;
-    } else {
-      Serial.println("❌ Flight data checksum failed");
-    }
+    // if (validateChecksum((uint8_t*)&tempData, sizeof(FlightDataPacket))) {
+    //   latestFlightData = tempData;
+    //   newFlightDataAvailable = true;
+    //   return true;
+    // } else {
+    //   Serial.println("❌ Flight data checksum failed");
+    // }
   }
 
   return false;
@@ -267,28 +277,34 @@ void Airplane::resetToSafeDefaults() {
 // =============================================================================
 
 bool Airplane::getFlightData(FlightDataPacket& data) {
-  if (newFlightDataAvailable) {
-    data = latestFlightData;
-    newFlightDataAvailable = false;
-    return true;
-  }
-  return false;
+  // if (newFlightDataAvailable) {
+  //   data = latestFlightData;
+  //   newFlightDataAvailable = false;
+  //   return true;
+  // }
+  // return false;
 }
 
 float Airplane::getCurrentRoll() const {
-  return latestFlightData.roll;
+  return getIMURoll();
 }
 
 float Airplane::getCurrentPitch() const {
-  return latestFlightData.pitch;
+  return getIMUPitch();
 }
 
 float Airplane::getCurrentYaw() const {
-  return latestFlightData.yaw;
+  return getIMUYaw();
 }
 
 float Airplane::getCurrentAltitude() const {
-  return latestFlightData.altitude;
+  // TODO: Implement barometric altitude sensor
+  return 0.0f;  // Placeholder - no altitude sensor integrated yet
+}
+
+float Airplane::getCurrentTemperature() const {
+  // TODO: Implement temperature sensor
+  return 25.0f;  // Placeholder - no temperature sensor integrated yet
 }
 
 bool Airplane::isSlaveHealthy() const {
@@ -335,17 +351,28 @@ void Airplane::writeToServos() {
   engineServos.write(constrain(servoCommands.engine, 0, 180));
 
   // Ailerons
-  int targetRollForServo = servoCommands.roll;
-  bool shouldApplyFlaps = abs(targetRollForServo - 90) < 10;
+  int targetRollForServoLeft = servoCommands.roll;
+  int targetRollForServoRight = servoCommands.roll;
+  bool shouldApplyFlaps = abs(servoCommands.roll - 90) < 10;
 
-  targetRollForServo += servoCommands.trim_aileron;
-  targetRollForServo += shouldApplyFlaps ? servoCommands.flaps * FLAP_ANGLE : 0;
+  // Apply trim to both ailerons
+  targetRollForServoLeft += servoCommands.trim_aileron;
+  targetRollForServoRight += servoCommands.trim_aileron;
 
-  if (servoCommands.landingAirbrake)
-    targetRollForServo = 0;
+  // Apply flaps if needed
+  if (shouldApplyFlaps) {
+    targetRollForServoLeft += servoCommands.flaps * FLAP_ANGLE;
+    targetRollForServoRight -= servoCommands.flaps * FLAP_ANGLE;
+  }
 
-  rollLeftMotorServo.write(constrain(180 - targetRollForServo, 0, 180));  // Left aileron
-  rollRightMotorServo.write(constrain(targetRollForServo, 0, 180));       // Right aileron
+  // Apply landing airbrake
+  if (servoCommands.landingAirbrake) {
+    targetRollForServoLeft = 0;
+    targetRollForServoRight = 0;
+  }
+
+  rollLeftMotorServo.write(constrain(180 - targetRollForServoLeft, 0, 180));    // Left aileron
+  rollRightMotorServo.write(constrain(180 - targetRollForServoRight, 0, 180));  // Right aileron
 
   // Elevators
   elevationLeftMotorServo.write(constrain(servoCommands.elevators + servoCommands.trim_elevator, 0, 180));
@@ -436,4 +463,129 @@ void Airplane::performLanding(float glidePath) {
   Serial.print("Performing landing approach at ");
   Serial.print(glidePath);
   Serial.println(" degree glide path");
+}
+
+// =============================================================================
+// IMU INITIALIZATION AND MANAGEMENT 🧭
+// =============================================================================
+
+void Airplane::initializeIMU() {
+  Serial.println("🧭 Initializing IMU...");
+
+  if (imu.initialize()) {
+    Serial.println("✅ IMU initialized successfully");
+
+    // Auto-calibrate if not already calibrated
+    if (!imu.isCalibrated()) {
+      Serial.println("⚠️ IMU not calibrated, starting calibration...");
+      imu.calibrate();
+    }
+  } else {
+    Serial.println("❌ IMU initialization failed!");
+  }
+}
+
+void Airplane::updateIMU() {
+  // Rate limit IMU updates to prevent FIFO overflow
+  static unsigned long lastIMUCall = 0;
+  unsigned long currentTime = millis();
+
+  // Limit to ~50Hz max (20ms minimum between calls)
+  if (currentTime - lastIMUCall < 20) {
+    return;
+  }
+
+  if (imu.update()) {
+    latestIMUData = imu.getCurrentData();
+    imuDataAvailable = true;
+    lastIMUUpdate = currentTime;
+    processIMUData();
+  }
+
+  lastIMUCall = currentTime;
+}
+
+void Airplane::processIMUData() {
+  // Process the IMU data for flight control purposes
+  if (!latestIMUData.dataValid) {
+    return;
+  }
+
+  // In STABILITY mode, use IMU data for flight stabilization
+  if (currentFlightMode == FlightMode::STABILITY) {
+    // Simple stabilization example - adjust based on roll/pitch angles
+
+    // Roll stabilization
+    if (abs(latestIMUData.roll) > 5.0f) {  // 5 degree deadband
+      // Apply opposite aileron input to level the aircraft
+      float correctionRoll = -latestIMUData.roll * 0.5f;    // Gain factor
+      correctionRoll = constrain(correctionRoll, -30, 30);  // Limit correction
+
+      // Apply correction (this would need to be integrated with manual input)
+      // setRollAngle(correctionRoll);
+    }
+
+    // Pitch stabilization
+    if (abs(latestIMUData.pitch) > 3.0f) {                    // 3 degree deadband
+      float correctionPitch = -latestIMUData.pitch * 0.3f;    // Gain factor
+      correctionPitch = constrain(correctionPitch, -15, 15);  // Limit correction
+
+      // Apply correction (this would need to be integrated with manual input)
+      // setPitchAngle(correctionPitch);
+    }
+  }
+}
+
+bool Airplane::isIMUDataFresh() const {
+  return imuDataAvailable && (millis() - lastIMUUpdate < 100);  // 100ms timeout
+}
+
+// =============================================================================
+// IMU DATA GETTERS 🧭
+// =============================================================================
+
+bool Airplane::getIMUData(IMUData& data) {
+  if (isIMUDataFresh()) {
+    data = latestIMUData;
+    return true;
+  }
+  return false;
+}
+
+float Airplane::getIMURoll() const {
+  return isIMUDataFresh() ? latestIMUData.roll : 0.0f;
+}
+
+float Airplane::getIMUPitch() const {
+  return isIMUDataFresh() ? latestIMUData.pitch : 0.0f;
+}
+
+float Airplane::getIMUYaw() const {
+  return isIMUDataFresh() ? latestIMUData.yaw : 0.0f;
+}
+
+float Airplane::getIMURollRate() const {
+  return isIMUDataFresh() ? latestIMUData.rollRate : 0.0f;
+}
+
+float Airplane::getIMUPitchRate() const {
+  return isIMUDataFresh() ? latestIMUData.pitchRate : 0.0f;
+}
+
+float Airplane::getIMUYawRate() const {
+  return isIMUDataFresh() ? latestIMUData.yawRate : 0.0f;
+}
+
+bool Airplane::isIMUReady() const {
+  return imu.isDMPReady() && imu.isDataValid();
+}
+
+void Airplane::calibrateIMU() {
+  Serial.println("🎯 Starting IMU calibration...");
+  imu.calibrate();
+}
+
+void Airplane::resetIMUOrientation() {
+  Serial.println("🔄 Resetting IMU orientation...");
+  imu.resetOrientation();
 }
