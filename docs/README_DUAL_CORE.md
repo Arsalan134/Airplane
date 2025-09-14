@@ -85,8 +85,8 @@ SemaphoreHandle_t xDataMutex;
 ### **Shared Data Variables**
 Protected variables accessed by both cores:
 - `engineReceived`, `aileronReceived`, `rudderReceived`, `elevatorsReceived`
-- `elevatorTrimReceived`, `aileronTrimReceived`, `flapsRecieved`
-- `resetAileronTrim`, `resetElevatorTrim`, `airBrakeReceived`
+- `elevatorTrimReceived`, `aileronTrimReceived`, `flapsReceived`
+- `shouldResetAileronTrim`, `shouldResetElevatorTrim`, `airBrakeReceived`
 - `lastReceivedTime` (critical for timeout detection)
 
 ### **Error Handling**

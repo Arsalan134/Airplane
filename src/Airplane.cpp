@@ -24,7 +24,6 @@ Airplane::Airplane() : imu(IMU::getInstance()) {
   servoCommands.flaps = 0;                // No flaps
   servoCommands.landingAirbrake = false;  // Airbrake off
 
-  lastReceivedTime = millis();
   lastI2CCommand = 0;
   connectionActive = false;
   slaveHealthy = false;
@@ -87,7 +86,29 @@ void Airplane::initializeEngines() {
 }
 
 void Airplane::update() {
-  unsigned long currentTime = millis();
+  // Check for timeout and handle emergency procedures
+  if (millis() - lastReceivedTime >= CONNECTION_TIMEOUT) {
+    if (currentFlightMode != FlightMode::AUTOPILOT)
+      setFlightMode(FlightMode::AUTOPILOT);  // Switch to autopilot mode on timeout
+
+  } else {
+    if (currentFlightMode != FlightMode::MANUAL)
+      setFlightMode(FlightMode::MANUAL);
+
+    setThrottle(engineReceived);
+    setAilerons(aileronReceived);
+    setElevators(elevatorsReceived);
+    setRudder(rudderReceived);
+    setFlaps(flapsReceived);
+    setElevatorTrim(elevatorTrimReceived);
+    setAileronTrim(aileronTrimReceived);
+    setLandingAirbrake(airBrakeReceived);
+
+    if (shouldResetAileronTrim)
+      resetAileronTrim();
+    if (shouldResetElevatorTrim)
+      resetElevatorTrim();
+  }
 
   // Update IMU data
   updateIMU();
@@ -98,8 +119,6 @@ void Airplane::update() {
   //   requestFlightData();
   //   lastDataRequest = currentTime;
   // }
-
-  checkConnectionTimeout();
 
   // Log control changes periodically
   // static unsigned long lastLog = 0;
@@ -179,7 +198,6 @@ bool Airplane::requestSlaveStatus() {
 void Airplane::setThrottle(uint8_t value) {
   if (isValidControlValue(value)) {
     servoCommands.engine = constrain(value, 0, 180);
-    updateLastReceivedTime();
     writeToServos();
   }
 }
@@ -187,7 +205,6 @@ void Airplane::setThrottle(uint8_t value) {
 void Airplane::setRudder(uint8_t value) {
   if (isValidControlValue(value)) {
     servoCommands.rudder = map(value, 0, 180, 90 - rudderHalfAngleFreedom, 90 + rudderHalfAngleFreedom);
-    updateLastReceivedTime();
     writeToServos();
   }
 }
@@ -195,7 +212,6 @@ void Airplane::setRudder(uint8_t value) {
 void Airplane::setElevators(uint8_t value) {
   if (isValidControlValue(value)) {
     servoCommands.elevators = constrain(value, 0, 180);
-    updateLastReceivedTime();
     writeToServos();
   }
 }
@@ -203,7 +219,6 @@ void Airplane::setElevators(uint8_t value) {
 void Airplane::setAilerons(uint8_t value) {
   if (isValidControlValue(value)) {
     servoCommands.roll = constrain(value, 0, 180);
-    updateLastReceivedTime();
     writeToServos();
   }
 }
@@ -264,9 +279,6 @@ void Airplane::resetToSafeDefaults() {
   servoCommands.flaps = 0;                // No flaps
   servoCommands.landingAirbrake = false;  // Airbrake off
 
-  // Reset to safe flight mode
-  currentFlightMode = FlightMode::STABILITY;
-
   Serial.println("🔒 Flight controls reset to safe defaults");
 
   writeToServos();
@@ -282,7 +294,7 @@ bool Airplane::getFlightData(FlightDataPacket& data) {
   //   newFlightDataAvailable = false;
   //   return true;
   // }
-  // return false;
+  return false;
 }
 
 float Airplane::getCurrentRoll() const {
@@ -311,35 +323,13 @@ bool Airplane::isSlaveHealthy() const {
   return slaveHealthy;
 }
 
-void Airplane::checkConnectionTimeout() {
-  if (connectionActive && (millis() - lastReceivedTime > CONNECTION_TIMEOUT)) {
-    Serial.println("⚠️ Connection timeout - activating emergency shutdown");
-    emergencyShutdown();
-    connectionActive = false;
-  }
-}
-
-void Airplane::emergencyShutdown() {
-  Serial.println("🚨 EMERGENCY SHUTDOWN ACTIVATED");
-  resetToSafeDefaults();
-}
-
 bool Airplane::isValidControlValue(uint8_t value) {
   return (value >= 0 && value <= 180);  // Basic range check
 }
 
-void Airplane::updateLastReceivedTime() {
-  lastReceivedTime = millis();
-
-  if (!connectionActive) {
-    connectionActive = true;
-    Serial.println("📡 Connection restored");
-  }
-}
-
 void Airplane::logControlChanges() {
-  Serial.printf("🎮 Controls - Engine: %d, Roll: %d, Elevators: %d, Rudder: %d, Slave: %s\n", servoCommands.engine, servoCommands.roll,
-                servoCommands.elevators, servoCommands.rudder, slaveHealthy ? "✅" : "❌");
+  Serial.printf("🎮 Controls - Engine: %d, Roll: %d, Elevators: %d, Rudder: %d\n", servoCommands.engine, servoCommands.roll,
+                servoCommands.elevators, servoCommands.rudder);
 }
 
 String Airplane::getStatusString() {
@@ -385,20 +375,20 @@ void Airplane::writeToServos() {
   // logControlChanges();
 }
 
-// String Airplane::getFlightModeString() const {
-//   switch (currentFlightMode) {
-//     case FlightMode::LANDING:
-//       return "🛬 Landing";
-//     case FlightMode::ACROBATIC:
-//       return "🎢 Acrobatic";
-//     case FlightMode::STABILITY:
-//       return "📐 Stability";
-//     case FlightMode::MANUAL:
-//       return "🎮 Manual";
-//     default:
-//       return "❓ Unknown";
-//   }
-// }
+String Airplane::getFlightModeString() const {
+  switch (currentFlightMode) {
+    case FlightMode::LANDING:
+      return "🛬 Landing";
+    case FlightMode::MANUAL:
+      return "🎮 Manual";
+    case FlightMode::STABILITY:
+      return "📐 Stability";
+    case FlightMode::AUTOPILOT:
+      return "🤖 Autopilot";
+    default:
+      return "❓ Unknown";
+  }
+}
 
 // String Airplane::getStatusString() {
 //   String status = "✈️ Airplane Status:\n";
@@ -417,24 +407,23 @@ void Airplane::writeToServos() {
 // HIGH-LEVEL SETTERS (FLIGHT CONTROL) 🛩️
 // =============================================================================
 
-// TODO:- Need to rethink this part and degrees
-void Airplane::setRollAngle(float degrees) {
-  // targetAileron = constrainAngle(degrees, -45, 45);
-  writeToServos();
-  logControlChanges();
-}
+// void Airplane::setRollAngle(int degrees) {
+//   servoCommands.roll = degrees + 90;  // Convert -45 to +45 range to 0-180
+//   writeToServos();
+//   logControlChanges();
+// }
 
-void Airplane::setPitchAngle(float degrees) {
-  // targetElevators = constrainAngle(degrees, 0, 180);
-  writeToServos();
-  logControlChanges();
-}
+// void Airplane::setPitchAngle(int degrees) {
+//   servoCommands.elevators = degrees + 90;  // Convert -45 to +45 range to 0-180
+//   writeToServos();
+//   logControlChanges();
+// }
 
-void Airplane::setYawAngle(float degrees) {
-  // targetRudder = constrainAngle(degrees, 0, 180);
-  writeToServos();
-  logControlChanges();
-}
+// void Airplane::setYawAngle(int degrees) {
+//   servoCommands.rudder = degrees + 90;  // Convert -90 to +90 range to 0-180
+//   writeToServos();
+//   logControlChanges();
+// }
 
 // =============================================================================
 // FLIGHT MODE SETTERS
@@ -443,6 +432,18 @@ void Airplane::setYawAngle(float degrees) {
 void Airplane::setFlightMode(FlightMode mode) {
   currentFlightMode = mode;
   Serial.println("Flight mode set to: " + getFlightModeString());
+
+  switch (currentFlightMode) {
+    case FlightMode::AUTOPILOT:
+
+      // Emergency flight control - critical safety function
+      // Code for autopilot mode
+      resetToSafeDefaults();
+      break;
+
+    default:
+      break;
+  }
 }
 
 // =============================================================================
@@ -511,27 +512,26 @@ void Airplane::processIMUData() {
     return;
   }
 
-  // In STABILITY mode, use IMU data for flight stabilization
-  if (currentFlightMode == FlightMode::STABILITY) {
+  // In AUTOPILOT mode, use IMU data for flight stabilization
+  if (currentFlightMode == FlightMode::AUTOPILOT) {
     // Simple stabilization example - adjust based on roll/pitch angles
 
-    // Roll stabilization
-    if (abs(latestIMUData.roll) > 5.0f) {  // 5 degree deadband
-      // Apply opposite aileron input to level the aircraft
-      float correctionRoll = -latestIMUData.roll * 0.5f;    // Gain factor
-      correctionRoll = constrain(correctionRoll, -30, 30);  // Limit correction
+    //  Roll stabilization
+    if (abs(latestIMUData.roll) > 2.0f) {  // 2 degree deadband
 
-      // Apply correction (this would need to be integrated with manual input)
-      // setRollAngle(correctionRoll);
+      uint8_t gain = 2;                                     // Adjust gain as needed
+      uint8_t correctionRoll = -latestIMUData.roll * gain;  // Gain factor
+
+      setAilerons(correctionRoll + 90);
     }
 
     // Pitch stabilization
-    if (abs(latestIMUData.pitch) > 3.0f) {                    // 3 degree deadband
-      float correctionPitch = -latestIMUData.pitch * 0.3f;    // Gain factor
-      correctionPitch = constrain(correctionPitch, -15, 15);  // Limit correction
+    if (abs(latestIMUData.pitch) > 2.0f) {  // 2 degree deadband
 
-      // Apply correction (this would need to be integrated with manual input)
-      // setPitchAngle(correctionPitch);
+      uint8_t gain = 4;                                      // Adjust gain as needed
+      uint8_t correctionPitch = latestIMUData.pitch * gain;  // Gain factor
+
+      setElevators(correctionPitch + 90);
     }
   }
 }

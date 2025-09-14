@@ -100,16 +100,6 @@ void FlightControlTaskCode(void* pvParameters) {
 
     // Take mutex to safely access shared data
     if (xSemaphoreTake(xDataMutex, 20 / portTICK_PERIOD_MS) == pdTRUE) {
-      // Check for timeout and handle emergency procedures
-      if (millis() - lastReceivedTime >= CONNECTION_TIMEOUT) {
-        // Emergency flight control - critical safety function
-        // Serial.println("[CORE 1] 🚨 Emergency mode activated!");
-        // airplane.emergencyShutdown();
-        ACS();
-      } else {
-        sendDataToAirplane();
-      }
-
       // Update airplane systems
       airplane.update();
 
@@ -176,26 +166,6 @@ void CommunicationTaskCode(void* pvParameters) {
 
     vTaskDelay(20 / portTICK_PERIOD_MS);  // Run at ~50Hz - adequate for communication and display
   }
-}
-
-void sendDataToAirplane() {
-  airplane.setThrottle(engineReceived);
-  airplane.setAilerons(aileronReceived);
-  airplane.setElevators(elevatorsReceived);
-  airplane.setRudder(rudderReceived);
-  airplane.setFlaps(flapsRecieved);
-  airplane.setElevatorTrim(elevatorTrimReceived);
-  airplane.setAileronTrim(aileronTrimReceived);
-  airplane.setLandingAirbrake(airBrakeReceived);
-
-  if (resetAileronTrim)
-    airplane.resetAileronTrim();
-  if (resetElevatorTrim)
-    airplane.resetElevatorTrim();
-}
-
-void ACS() {
-  // airplane.resetToSafeDefaults();  // Center the servos
 }
 
 void setupSD() {}

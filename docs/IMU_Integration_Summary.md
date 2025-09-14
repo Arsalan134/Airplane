@@ -53,7 +53,7 @@ VCC     -> 3.3V
 GND     -> GND  
 SCL     -> GPIO 22 (I2C Clock)
 SDA     -> GPIO 21 (I2C Data)
-INT     -> GPIO 2  (Interrupt Pin)
+INT     -> GPIO   (Interrupt Pin)
 ```
 
 ## 🚀 Usage Examples

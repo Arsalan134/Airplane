@@ -18,7 +18,7 @@
 
 #define CONNECTION_TIMEOUT 2000  // ⏱️
 
-enum class FlightMode { MANUAL = 0, STABILITY = 1, ACROBATIC = 2, LANDING = 3 };  // 🛩️
+enum class FlightMode { MANUAL = 0, TAKEOFF = 1, STABILITY = 2, AUTOPILOT = 3, LANDING = 4 };  // 🛩️
 
 class Airplane {
  private:
@@ -44,7 +44,6 @@ class Airplane {
   ServoCommandPacket servoCommands;
 
   // Safety and status
-  unsigned long lastReceivedTime;
   unsigned long lastI2CCommand;
   bool connectionActive;
   bool slaveHealthy;
@@ -68,13 +67,12 @@ class Airplane {
   // bool newFlightDataAvailable;
 
   // Private helper functions
-  void checkConnectionTimeout();
   bool isValidControlValue(uint8_t value);
   void logControlChanges();
   bool requestFlightData();
   bool requestSlaveStatus();
   void writeToServos();
-  
+
   // IMU helper functions
   void updateIMU();
   void processIMUData();
@@ -91,7 +89,6 @@ class Airplane {
   void initializeIMU();
   void update();
   bool isControlInputValid();
-  void emergencyShutdown();
   String getStatusString();
 
   // 🔧 Setters for flight controls
@@ -116,9 +113,9 @@ class Airplane {
   void setConnectionStatus(bool active);
 
   // High-level flight control functions
-  void setRollAngle(float degrees);   // Roll left (-) or right (+)
-  void setPitchAngle(float degrees);  // Pitch up (+) or down (-)
-  void setYawAngle(float degrees);    // Yaw left (-) or right (+)
+  void setRollAngle(int degrees);   // Roll left (-) or right (+)
+  void setPitchAngle(int degrees);  // Pitch up (+) or down (-)
+  void setYawAngle(int degrees);    // Yaw left (-) or right (+)
 
   // Combined maneuver functions
   void performLevel();  // Level flight (all controls neutral)
@@ -140,11 +137,11 @@ class Airplane {
   float getCurrentYaw() const;
   float getCurrentAltitude() const;
   float getCurrentTemperature() const;
-  
+
   // IMU data getters
   bool getIMUData(IMUData& data);
   float getIMURoll() const;
-  float getIMUPitch() const; 
+  float getIMUPitch() const;
   float getIMUYaw() const;
   float getIMURollRate() const;
   float getIMUPitchRate() const;

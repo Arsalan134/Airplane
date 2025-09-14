@@ -29,11 +29,11 @@ int elevatorTrimToDisplay = 0;
 int aileronTrimReceived = 0;
 int aileronTrimToDisplay = 0;
 
-int flapsRecieved = 0;
+int flapsReceived = 0;
 int flapsToDisplay = 0;
 
-bool resetAileronTrim = false;
-bool resetElevatorTrim = false;
+bool shouldResetAileronTrim = false;
+bool shouldResetElevatorTrim = false;
 
 bool airBrakeReceived = false;
 
@@ -87,7 +87,7 @@ void onReceive(int packetSize) {
 
   recievedMessage = message;
 
-  Serial.println("Message: \t" + recievedMessage);
+  // Serial.println("Message: \t" + recievedMessage);
 
   if (recievedMessage.length() < 10) {
     Serial.println("📏 Received message is too short");
@@ -181,9 +181,9 @@ void onReceive(int packetSize) {
   elevatorsReceived = recievedMessage.substring(indEL + 1, indT).toInt();
   elevatorTrimReceived = recievedMessage.substring(indT + 1, indI).toInt();
   aileronTrimReceived = recievedMessage.substring(indI + 1, indF).toInt();
-  flapsRecieved = recievedMessage.substring(indF + 1, indZ).toInt();
-  resetAileronTrim = recievedMessage.substring(indZ + 1, indY).toInt();
-  resetElevatorTrim = recievedMessage.substring(indY + 1, indB).toInt();
+  flapsReceived = recievedMessage.substring(indF + 1, indZ).toInt();
+  shouldResetAileronTrim = recievedMessage.substring(indZ + 1, indY).toInt();
+  shouldResetElevatorTrim = recievedMessage.substring(indY + 1, indB).toInt();
   airBrakeReceived = recievedMessage.substring(indB + 1).toInt();
 
   RSSI = LoRa.packetRssi();

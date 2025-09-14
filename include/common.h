@@ -39,11 +39,11 @@ extern int elevatorTrimToDisplay;
 extern int aileronTrimReceived;
 extern int aileronTrimToDisplay;
 
-extern int flapsRecieved;
+extern int flapsReceived;
 extern int flapsToDisplay;
 
-extern bool resetAileronTrim;
-extern bool resetElevatorTrim;
+extern bool shouldResetAileronTrim;
+extern bool shouldResetElevatorTrim;
 
 extern bool airBrakeReceived;
 
