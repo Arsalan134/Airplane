@@ -5,6 +5,7 @@
 // 🔌 Servo pin definitions
 #define ENGINE_PIN 4
 #define ROLL_LEFT_MOTOR_PIN 12       // green cable 🟢
+#define ROLL_RIGHT_MOTOR_PIN 0       // green cable 🟢
 #define ELEVATION_LEFT_MOTOR_PIN 13  // blue cable 🔵 used by sd card
 #define ELEVATION_RIGHT_MOTOR_PIN 2  // blue cable 🔵 used by sd card
 #define RUDDER_MOTOR_PIN 15          // yellow cable 🟡 used by sd card
@@ -33,6 +34,7 @@ class Airplane {
   // Servo objects
   Servo engineServos;
   Servo rollLeftMotorServo;
+  Servo rollRightMotorServo;
   Servo elevationLeftMotorServo;
   Servo elevationRightMotorServo;
   Servo rudderMotorServo;

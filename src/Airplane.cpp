@@ -46,6 +46,7 @@ Airplane& Airplane::getInstance() {
 void Airplane::initialize() {
   Serial.println("🛩️ Initializing Airplane Master Controller");
 
+  delay(200);  // Allow time for hardware to stabilize
   initializeServos();
   initializeEngines();
 
@@ -53,18 +54,19 @@ void Airplane::initialize() {
   resetToSafeDefaults();
 
   // Test slave communication
-  delay(100);  // Give slave time to initialize
-  if (requestSlaveStatus()) {
-    Serial.println("✅ Slave communication established");
-    slaveHealthy = true;
-  } else {
-    Serial.println("❌ Warning: Cannot communicate with slave");
-    slaveHealthy = false;
-  }
+  // delay(100);  // Give slave time to initialize
+  // if (requestSlaveStatus()) {
+  //   Serial.println("✅ Slave communication established");
+  //   slaveHealthy = true;
+  // } else {
+  //   Serial.println("❌ Warning: Cannot communicate with slave");
+  //   slaveHealthy = false;
+  // }
 }
 
 void Airplane::initializeServos() {
   rollLeftMotorServo.attach(ROLL_LEFT_MOTOR_PIN);
+  rollRightMotorServo.attach(ROLL_RIGHT_MOTOR_PIN);
   elevationLeftMotorServo.attach(ELEVATION_LEFT_MOTOR_PIN);
   elevationRightMotorServo.attach(ELEVATION_RIGHT_MOTOR_PIN);
   rudderMotorServo.attach(RUDDER_MOTOR_PIN);
@@ -73,12 +75,8 @@ void Airplane::initializeServos() {
 }
 
 void Airplane::initializeEngines() {
-  Serial.println("⚡ Engines Test Starting...");
-
-  // Attach servo with proper PWM range for ESC
-  engineServos.attach(ENGINE_PIN, 1000, 2000);
-
-  Serial.println("🚀 Engines initialized successfully");
+  engineServos.attach(ENGINE_PIN, 1000, 2000);  // Attach servo with proper PWM range for ESC
+  Serial.println("⚡Engines initialized successfully");
 }
 
 void Airplane::update() {
@@ -347,6 +345,7 @@ void Airplane::writeToServos() {
     targetRollForServo = 0;
 
   rollLeftMotorServo.write(constrain(180 - targetRollForServo, 0, 180));  // Left aileron
+  rollRightMotorServo.write(constrain(targetRollForServo, 0, 180));       // Right aileron
 
   // Elevators
   elevationLeftMotorServo.write(constrain(servoCommands.elevators + servoCommands.trim_elevator, 0, 180));
