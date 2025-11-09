@@ -1,5 +1,5 @@
-#include "OLEDDisplayUi.h"
-#include "SSD1306Wire.h"
+#include "OLEDDisplayUi.h"  // 📱 OLED display user interface library
+#include "SSD1306Wire.h"    // 🖥️ SSD1306 OLED display driver for I2C
 
 /*
 🛩️ ESP32-PICO-D4 Airplane Control System
@@ -14,43 +14,34 @@
     🏷️ MAC: 90:15:06:f6:17:e0
 */
 
-// 🎮 PS5 Controller
+// 🎮 PS5 Controller MAC Address for Bluetooth pairing
 #define MAC_ADDRESS "ac:36:1b:41:ac:ed"
 
-extern OLEDDisplayUi display;
+extern OLEDDisplayUi display;  // 📺 Main display controller instance
 
-// Overlays are statically drawn on top of a frame eg. a clock
-// OverlayCallback overlays[] = {msOverlay};
-extern OverlayCallback allOverlays[];
-extern OverlayCallback wifiOverlays[];
-extern OverlayCallback bluetoothOverlays[];
+extern OverlayCallback allOverlays[];        // 🎨 General overlay functions array
+extern OverlayCallback wifiOverlays[];       // 📶 WiFi-specific overlay functions
+extern OverlayCallback bluetoothOverlays[];  // 📱 Bluetooth overlay functions
 
-extern String recievedMessage;
+extern String recievedMessage;  // 📩 Last received message from ground station
 
-extern int engineReceived;
-extern int aileronReceived;
-extern int rudderReceived;
+extern int engineReceived;              // 🚁 Engine throttle value from controller
+extern int aileronReceived;             // ↔️ Aileron control value (roll)
+extern int rudderReceived;              // ↕️ Rudder control value (yaw)
+extern int elevatorsReceived;           // ⬆️⬇️ Elevator control value (pitch)
+extern int elevatorTrimReceived;        // ⚖️ Elevator trim adjustment value
+extern int elevatorTrimToDisplay;       // 📊 Elevator trim value for display
+extern int aileronTrimReceived;         // ⚖️ Aileron trim adjustment value
+extern int aileronTrimToDisplay;        // 📊 Aileron trim value for display
+extern int flapsReceived;               // 🛬 Flaps position value
+extern int flapsToDisplay;              // 📊 Flaps position for display
+extern bool shouldResetAileronTrim;     // 🔄 Flag to reset aileron trim
+extern bool shouldResetElevatorTrim;    // 🔄 Flag to reset elevator trim
+extern bool airBrakeReceived;           // 🛑 Air brake activation status
+extern unsigned long lastReceivedTime;  // ⏰ Timestamp of last received data
 
-extern int elevatorsReceived;
+extern int RSSIToDisplay;         // 📶 Signal strength indicator for display
+extern int elapsedTimeToDisplay;  // ⏱️ Flight time counter for display
 
-extern int elevatorTrimReceived;
-extern int elevatorTrimToDisplay;
-
-extern int aileronTrimReceived;
-extern int aileronTrimToDisplay;
-
-extern int flapsReceived;
-extern int flapsToDisplay;
-
-extern bool shouldResetAileronTrim;
-extern bool shouldResetElevatorTrim;
-
-extern bool airBrakeReceived;
-
-extern int RSSIToDisplay;
-extern int elapsedTimeToDisplay;
-
-extern unsigned long lastReceivedTime;
-
-// IMU status for display
+// 🧭 IMU (Inertial Measurement Unit) status for display
 extern bool imuStatusDisplay;
